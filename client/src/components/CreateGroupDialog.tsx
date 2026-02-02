@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertGroupSchema } from "@shared/schema";
 import { z } from "zod";
 import { useCreateGroup } from "@/hooks/use-groups";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +39,8 @@ type FormValues = z.infer<typeof formSchema>;
 export function CreateGroupDialog() {
   const [open, setOpen] = useState(false);
   const createGroup = useCreateGroup();
-  
+  const { t } = useLanguage();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -61,12 +63,12 @@ export function CreateGroupDialog() {
       <DialogTrigger asChild>
         <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 hover:-translate-y-0.5">
           <Plus className="mr-2 h-4 w-4" />
-          Create Group
+          {t("createGroup") || "Create Group"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create New Group</DialogTitle>
+          <DialogTitle>{t("createGroup") || "Create New Group"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -75,9 +77,9 @@ export function CreateGroupDialog() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Group Name</FormLabel>
+                  <FormLabel>{t("groupName")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. November 2024 Umrah" {...field} />
+                    <Input placeholder={t("placeholderGroup")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -88,17 +90,17 @@ export function CreateGroupDialog() {
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Initial Status</FormLabel>
+                  <FormLabel>{t("status")}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
+                        <SelectValue placeholder={t("selectStatus") || "Select status"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="submitted">Submitted</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="draft">{t("draft") || "Draft"}</SelectItem>
+                      <SelectItem value="submitted">{t("submitted") || "Submitted"}</SelectItem>
+                      <SelectItem value="approved">{t("approved") || "Approved"}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -110,7 +112,7 @@ export function CreateGroupDialog() {
                 {createGroup.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Create Group
+                {t("createGroup") || "Create Group"}
               </Button>
             </DialogFooter>
           </form>
@@ -119,3 +121,4 @@ export function CreateGroupDialog() {
     </Dialog>
   );
 }
+

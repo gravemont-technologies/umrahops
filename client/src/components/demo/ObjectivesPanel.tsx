@@ -25,18 +25,18 @@ export function ObjectivesPanel({ groupId }: { groupId?: string }) {
         setTimeout(() => {
             createObjective({
                 groupId: groupId || null,
-                title: "Verify Mahram relationship for Traveler #14 (Potential mismatch)",
+                title: t("aiTask1") || "Verify Mahram relationship for Traveler #14 (Potential mismatch)",
                 type: "critical",
                 isCompleted: false
             });
             createObjective({
                 groupId: groupId || null,
-                title: "Confirm Hotel Check-in for 50 beds with Pullman Zamzam",
+                title: t("aiTask2") || "Confirm Hotel Check-in for 50 beds with Pullman Zamzam",
                 type: "routine",
                 isCompleted: false
             });
             setIsGenerating(false);
-            toast({ title: "AI Objectives Updated", description: "New tasks generated based on workflow status." });
+            toast({ title: t("aiObjectivesUpdated"), description: t("newTasksGenerated") });
         }, 1500);
     };
 
@@ -58,11 +58,11 @@ export function ObjectivesPanel({ groupId }: { groupId?: string }) {
                 </Button>
             </CardHeader>
             <CardContent className="p-0">
-                <ScrollArea className="h-[400px] p-4 pt-0">
+                <div className="h-[400px] overflow-y-auto p-4 pt-0">
                     <div className="space-y-4">
                         {active.length === 0 && completed.length === 0 && (
                             <div className="text-center text-muted-foreground py-8 text-sm">
-                                No active objectives. Click AI Scan to analyze workflow.
+                                {t("noActiveObjectives")}
                             </div>
                         )}
 
@@ -72,13 +72,13 @@ export function ObjectivesPanel({ groupId }: { groupId?: string }) {
                                     checked={obj.isCompleted}
                                     onCheckedChange={() => handleToggle(obj.id, obj.isCompleted)}
                                 />
-                                <div className="grid gap-1.5 leading-none">
+                                <div className="grid gap-1.5 leading-none px-2">
                                     <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                                         {obj.title}
                                     </label>
                                     <p className="text-xs text-muted-foreground">
-                                        {obj.type === 'critical' && <Badge variant="destructive" className="h-5 px-1.5 text-[10px] uppercase mr-2">Critical</Badge>}
-                                        AI generated • {new Date(obj.createdAt!).toLocaleDateString()}
+                                        {obj.type === 'critical' && <Badge variant="destructive" className="h-5 px-1.5 text-[10px] uppercase mr-2">{t("critical")}</Badge>}
+                                        {t("aiGenerated")} • {new Date(obj.createdAt!).toLocaleDateString()}
                                     </p>
                                 </div>
                             </div>
@@ -86,18 +86,19 @@ export function ObjectivesPanel({ groupId }: { groupId?: string }) {
 
                         {completed.length > 0 && (
                             <div className="pt-4 border-t opacity-50">
-                                <h4 className="text-xs font-semibold mb-2 text-muted-foreground">Completed</h4>
+                                <h4 className="text-xs font-semibold mb-2 text-muted-foreground">{t("completed")}</h4>
                                 {completed.map(obj => (
                                     <div key={obj.id} className="flex items-center space-x-2 py-1">
                                         <Checkbox checked={true} onCheckedChange={() => handleToggle(obj.id, true)} />
-                                        <span className="text-sm line-through text-muted-foreground">{obj.title}</span>
+                                        <span className="text-sm line-through text-muted-foreground px-2">{obj.title}</span>
                                     </div>
                                 ))}
                             </div>
                         )}
                     </div>
-                </ScrollArea>
+                </div>
             </CardContent>
         </Card>
     );
 }
+

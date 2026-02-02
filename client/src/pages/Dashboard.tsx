@@ -64,7 +64,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{groupsLoading ? "..." : activeGroups}</div>
-            <p className="text-xs text-muted-foreground">+2 from last week</p>
+            <p className="text-xs text-muted-foreground">+2 {t("fromLastWeek")}</p>
           </CardContent>
         </Card>
 
@@ -75,7 +75,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalTravelers}</div>
-            <p className="text-xs text-muted-foreground">+180 new arrivals</p>
+            <p className="text-xs text-muted-foreground">+180 {t("newArrivals")}</p>
           </CardContent>
         </Card>
 
@@ -86,7 +86,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{jobsLoading ? "..." : pendingJobs}</div>
-            <p className="text-xs text-muted-foreground">Processing visas & syncs</p>
+            <p className="text-xs text-muted-foreground">{t("processingVisasSyncs")}</p>
           </CardContent>
         </Card>
 
@@ -97,7 +97,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{successRate}%</div>
-            <p className="text-xs text-muted-foreground">Visa issuance rate</p>
+            <p className="text-xs text-muted-foreground">{t("visaIssuanceRate")}</p>
           </CardContent>
         </Card>
       </div>
@@ -117,20 +117,20 @@ export default function Dashboard() {
                       <TableHead>{t("groupName")}</TableHead>
                       <TableHead>{t("status")}</TableHead>
                       <TableHead>{t("createdAt")}</TableHead>
-                      <TableHead className="text-right">{t("action")}</TableHead>
+                      <TableHead className={`${isRtl ? "text-left" : "text-right"}`}>{t("action")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {groupsLoading ? (
                       <TableRow>
                         <TableCell colSpan={4} className="h-24 text-center">
-                          Loading groups...
+                          {t("loading")}
                         </TableCell>
                       </TableRow>
                     ) : groups?.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                          No groups found. Create one to get started.
+                          {t("noGroupsFound") || "No groups found."}
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -146,11 +146,11 @@ export default function Dashboard() {
                                     'bg-muted text-muted-foreground'
                               }
                             >
-                              {group.status}
+                              {t(group.status) || group.status}
                             </Badge>
                           </TableCell>
                           <TableCell>{group.createdAt ? format(new Date(group.createdAt), 'PPP') : 'N/A'}</TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className={`${isRtl ? "text-left" : "text-right"}`}>
                             <Link href={`/dashboard/groups/${group.id}`}>
                               <Button variant="ghost" size="sm">{t("viewDetails")}</Button>
                             </Link>
@@ -167,14 +167,14 @@ export default function Dashboard() {
           {/* Job Queue Preview */}
           <Card className="shadow-sm border-border/60">
             <CardHeader>
-              <CardTitle>Recent System Jobs</CardTitle>
+              <CardTitle>{t("recentSystemJobs")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {jobsLoading ? (
-                  <p className="text-sm text-muted-foreground">Loading jobs...</p>
+                  <p className="text-sm text-muted-foreground">{t("loading")}</p>
                 ) : jobs?.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No jobs in queue.</p>
+                  <p className="text-sm text-muted-foreground">{t("noJobsInQueue")}</p>
                 ) : (
                   jobs?.slice(0, 3).map(job => (
                     <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg bg-muted/10">
@@ -188,7 +188,7 @@ export default function Dashboard() {
                           <p className="text-xs text-muted-foreground">ID: {job.id.slice(0, 8)}</p>
                         </div>
                       </div>
-                      <Badge variant="secondary">{job.status}</Badge>
+                      <Badge variant="secondary">{t(job.status) || job.status}</Badge>
                     </div>
                   ))
                 )}
@@ -196,6 +196,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
 
         <div className="lg:col-span-1">
           <ObjectivesPanel />

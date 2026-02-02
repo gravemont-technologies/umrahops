@@ -4,46 +4,48 @@ import { Badge } from "@/components/ui/badge";
 import { Activity, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 export default function JobsQueue() {
+  const { t } = useLanguage();
   const { data: jobs, isLoading } = useJobs();
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-display font-bold">System Jobs Queue</h1>
-        <p className="text-muted-foreground">Background processes and automation status.</p>
+        <h1 className="text-2xl font-display font-bold">{t("systemJobsQueue")}</h1>
+        <p className="text-muted-foreground">{t("jobsQueueSubDesc")}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
         {isLoading ? (
-          <div className="p-8 text-center text-muted-foreground">Loading queue...</div>
+          <div className="p-8 text-center text-muted-foreground">{t("loadingQueue")}</div>
         ) : jobs?.length === 0 ? (
-           <Card className="p-12 text-center text-muted-foreground border-dashed">
-             No jobs in history.
-           </Card>
+          <Card className="p-12 text-center text-muted-foreground border-dashed">
+            {t("noJobsInHistory")}
+          </Card>
         ) : (
           jobs?.map((job) => (
             <Card key={job.id} className="overflow-hidden">
               <div className="flex items-center p-4 gap-4">
-                <div className={`p-3 rounded-full ${
-                  job.status === 'completed' ? 'bg-emerald-100 text-emerald-600' :
-                  job.status === 'failed' ? 'bg-red-100 text-red-600' :
-                  'bg-blue-100 text-blue-600'
-                }`}>
-                   {job.status === 'completed' ? <CheckCircle2 className="h-5 w-5" /> :
+                <div className={`p-3 rounded-full ${job.status === 'completed' ? 'bg-emerald-100 text-emerald-600' :
+                    job.status === 'failed' ? 'bg-red-100 text-red-600' :
+                      'bg-blue-100 text-blue-600'
+                  }`}>
+                  {job.status === 'completed' ? <CheckCircle2 className="h-5 w-5" /> :
                     job.status === 'failed' ? <XCircle className="h-5 w-5" /> :
-                    <Activity className="h-5 w-5 animate-pulse" />
-                   }
+                      <Activity className="h-5 w-5 animate-pulse" />
+                  }
                 </div>
-                
+
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="font-bold text-base uppercase tracking-wide">{job.type.replace('_', ' ')}</h3>
                     <Badge variant={
                       job.status === 'completed' ? 'default' :
-                      job.status === 'failed' ? 'destructive' : 'secondary'
+                        job.status === 'failed' ? 'destructive' : 'secondary'
                     }>
-                      {job.status}
+                      {t(job.status) || job.status}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -55,7 +57,7 @@ export default function JobsQueue() {
                   </div>
                   {job.status === 'failed' && (
                     <div className="mt-2 text-sm text-destructive bg-destructive/5 p-2 rounded">
-                      Processing failed. Check logs for details.
+                      {t("processingFailed")}
                     </div>
                   )}
                 </div>
@@ -67,3 +69,4 @@ export default function JobsQueue() {
     </div>
   );
 }
+

@@ -1,12 +1,14 @@
 import { Link, useLocation } from "wouter";
 import { useDemo } from "@/context/DemoContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
   CheckCircle2,
   ShieldCheck,
   Zap,
-  Globe2
+  Globe2,
+  Languages
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,12 +17,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import heroImg from "@/assets/hero-placeholder.jpg"; // Placeholder logic handled by standard img
 
 export default function Landing() {
   const isSupabaseConnected = import.meta.env.VITE_SUPABASE_URL;
   const { startDemo } = useDemo();
   const [, setLocation] = useLocation();
+  const { language, setLanguage, t, isRtl } = useLanguage();
 
   const handleDemo = () => {
     startDemo();
@@ -30,23 +32,23 @@ export default function Landing() {
   const blueprints = [
     {
       id: "item-1",
-      title: "Group Management Blueprint",
-      content: "Effortlessly organize thousands of pilgrims into logical groups. Track status from draft to approval with our granular workflow engine."
+      title: t("groupManagementBlueprint"),
+      content: t("groupManagementBlueprintDesc")
     },
     {
       id: "item-2",
-      title: "Automated Visa Processing",
-      content: "Direct integration with Nusuk (simulated) allows for bulk visa processing. Reduce manual data entry errors by 95%."
+      title: t("automatedVisaProcessing"),
+      content: t("automatedVisaProcessingDesc")
     },
     {
       id: "item-3",
-      title: "Risk & Compliance Engine",
-      content: "AI-powered risk scoring for every traveler. Detect potential issues before submission to authorities."
+      title: t("riskComplianceEngine"),
+      content: t("riskComplianceEngineDesc")
     }
   ];
 
   return (
-    <div className="min-h-screen bg-background font-sans selection:bg-primary/20">
+    <div className={`min-h-screen bg-background font-sans selection:bg-primary/20 ${isRtl ? "font-urdu" : "font-sans"}`}>
       {/* Navigation */}
       <nav className="fixed w-full z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -58,11 +60,20 @@ export default function Landing() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-xs font-medium px-2 py-1 rounded bg-muted text-muted-foreground hidden sm:inline-block">
-              {isSupabaseConnected ? "Supabase Connected" : "Demo Mode"}
+              {isSupabaseConnected ? "Supabase Connected" : t("demoMode") || "Demo Mode"}
             </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-full"
+              onClick={() => setLanguage(language === "en" ? "ur" : "en")}
+              title={language === "en" ? "Urdu" : "English"}
+            >
+              <Languages className="h-5 w-5" />
+            </Button>
             <Link href="/dashboard">
               <Button variant="default" className="font-semibold shadow-lg shadow-primary/20">
-                Access Dashboard
+                {t("accessDashboard")}
               </Button>
             </Link>
           </div>
@@ -82,20 +93,20 @@ export default function Landing() {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground mb-6 leading-[1.1]">
-              Modern Operations for <br />
-              <span className="text-gradient">Umrah Management</span>
+              {t("heroTitle1")} <br />
+              <span className="text-gradient">{t("heroTitle2")}</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              Streamline your pilgrim workflows, automate visa processing, and ensure compliance with a platform built for the future of religious tourism.
+              {t("heroSubtitle")}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/dashboard">
                 <Button size="lg" className="h-14 px-8 rounded-full text-lg shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300">
-                  Get Started <ArrowRight className="ml-2 h-5 w-5" />
+                  {t("getStarted")} <ArrowRight className={`${isRtl ? "mr-2 rotate-180" : "ml-2"} h-5 w-5`} />
                 </Button>
               </Link>
               <Button onClick={handleDemo} variant="outline" size="lg" className="h-14 px-8 rounded-full text-lg bg-background/50 backdrop-blur-sm hover:bg-muted/50">
-                View Demo
+                {t("viewDemo")}
               </Button>
             </div>
           </motion.div>
@@ -113,9 +124,9 @@ export default function Landing() {
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-6">
                 <Globe2 className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold font-display mb-3">Nusuk Integration</h3>
+              <h3 className="text-xl font-bold font-display mb-3">{t("nusukIntegration")}</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Seamless synchronization with official ministry portals. Manage groups and visas without leaving your dashboard.
+                {t("nusukIntegrationDesc")}
               </p>
             </motion.div>
 
@@ -126,9 +137,9 @@ export default function Landing() {
               <div className="h-12 w-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary mb-6">
                 <Zap className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold font-display mb-3">Instant Processing</h3>
+              <h3 className="text-xl font-bold font-display mb-3">{t("instantProcessing")}</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Bulk upload thousands of travelers via CSV. Our engine parses, validates, and queues them for processing instantly.
+                {t("instantProcessingDesc")}
               </p>
             </motion.div>
 
@@ -139,9 +150,9 @@ export default function Landing() {
               <div className="h-12 w-12 rounded-xl bg-accent/50 flex items-center justify-center text-accent-foreground mb-6">
                 <ShieldCheck className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold font-display mb-3">Compliance First</h3>
+              <h3 className="text-xl font-bold font-display mb-3">{t("complianceFirst")}</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Built-in audit trails and risk scoring ensure you stay compliant with regulations while maximizing efficiency.
+                {t("complianceFirstDesc")}
               </p>
             </motion.div>
           </div>
@@ -152,8 +163,8 @@ export default function Landing() {
       <section className="py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">System Architecture</h2>
-            <p className="text-muted-foreground">Explore the modules that power the UmrahOps platform.</p>
+            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">{t("systemArchitecture")}</h2>
+            <p className="text-muted-foreground">{t("systemArchitectureDesc")}</p>
           </div>
 
           <div className="bg-background rounded-2xl border border-border shadow-xl shadow-black/5 p-2 sm:p-8">
@@ -182,9 +193,10 @@ export default function Landing() {
             </div>
             <span className="text-xl font-bold font-display">UmrahOps</span>
           </div>
-          <p className="text-sm text-muted-foreground">© 2024 UmrahOps. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">{t("allRightsReserved")}</p>
         </div>
       </footer>
     </div>
   );
 }
+
