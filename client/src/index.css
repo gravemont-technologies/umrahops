@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 224 71% 4%;
+  
+  /* Emerald / Gold Palette for Umrah theme */
+  --primary: 158 39% 43%; /* Deep Emerald */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 43 74% 49%; /* Muted Gold */
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 8% 46%;
+  
+  --accent: 43 74% 95%; /* Light Gold tint */
+  --accent-foreground: 43 74% 35%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 158 39% 43%;
+  
+  --radius: 0.75rem;
+  
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Playfair Display', serif;
+  --font-urdu: 'Noto Sans Arabic', sans-serif;
+}
+
+.dark {
+  --background: 224 71% 4%;
+  --foreground: 210 40% 98%;
+  
+  --primary: 158 39% 35%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 43 74% 49%;
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: 215 27% 12%;
+  --muted-foreground: 215 20% 65%;
+  
+  --accent: 215 27% 17%;
+  --accent-foreground: 210 40% 98%;
+  
+  --destructive: 0 62% 30%;
+  --destructive-foreground: 210 40% 98%;
+  
+  --border: 215 27% 17%;
+  --input: 215 27% 17%;
+  --ring: 158 39% 35%;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-sans);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply tracking-tight;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-background/80 backdrop-blur-md border border-border/50 shadow-lg;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary/80 to-secondary;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
+}

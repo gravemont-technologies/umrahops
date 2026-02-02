@@ -1,0 +1,122 @@
+# UmrahOps — Absolute concise specification (alien-LLM readable)
+
+## Core intent (one line)
+
+A local-first Progressive Web App that replaces chaotic Excel ops for Pakistani Umrah travel agents by normalizing group data, automating routine checks (including visa/program lookups), surfacing AI risk scores without leaking PII, enabling one-click operational actions (hotel assignment, WhatsApp messaging, PDF export), and preserving a full immutable audit trail — all while keeping sensitive data offline and runnable by swapping one `.env`.
+
+---
+
+## Actors
+
+* **Client (Pilgrim)** — person traveling.
+* **Local travel agent** — collects client info, uploads CSVs.
+* **External agent (sub-agent)** — supplier of group bundles and commercial margins.
+* **Parent agency (operator)** — central operator that verifies, enriches, runs checks, and finalizes bookings.
+* **NUSUK** — external visa/program registry the parent agency must check for each traveler (can be API or web UI).
+* **UmrahOps app** — PWA used by parent agency operators.
+
+---
+
+## High-level user flow (linear)
+
+1. **Collect**: Local/external agents produce messy CSVs containing group traveler data.
+2. **Upload**: Operator uploads CSV into UmrahOps.
+3. **Normalize & Validate**: System maps columns to a canonical schema, validates fields (passport pattern, dates, duplicates), and highlights errors.
+4. **Persist locally**: Cleaned records are stored in a local SQLite database (offline-first).
+5. **Risk scoring**: `aiService` receives *derived, anonymized features* (no raw PII) and returns risk scores (High/Med/Low) for paperwork or program issues.
+6. **NUSUK check**: System checks each traveler against NUSUK in bulk — either via official API or an automated RPA overlay; results update traveler status.
+7. **Assign services**: Operators assign hotels/rooms, transport, insurance; system detects overbooking/conflicts.
+8. **Message**: Create templated WhatsApp deep links per traveler/group; operator sends and marks status.
+9. **Export & Audit**: Generate client-side PDFs and write immutable audit entries for every action.
+10. **Iterate**: Exceptions route to a human-review queue for retries/resolution.
+
+---
+
+## Non-functional constraints & guarantees
+
+* **Local-first / data locality**: Sensitive data stays on-device (local SQLite) unless operator explicitly opts to push anonymized logs.
+* **Single `.env` surface**: All external integrations (Supabase auth, OpenAI, optional log server, optional NUSUK endpoint) configured via named env vars (provided in `.env.example`). Frontend reads `import.meta.env.VITE_*`.
+* **PII protection**: No raw PII to external AI or remote logs — use hashed values or derived features only.
+* **Offline resilience**: Writes queue locally; background sync and SW strategies to be used for eventual remote push.
+* **Auditable**: Every mutation logged immutably with agent ID + timestamp; optionally chain-hash for tamper evidence.
+
+---
+
+## Core components / services (contract-level)
+
+* **dbService**: CRUD for canonical tables; exposes `getGroups(agentId)`, `getTravelers(groupId)`, `insertBulkTravelers()`, `writeQueue` behavior.
+* **authService**: Supabase-based session management; exposes `getSession()`, `agentId`.
+* **dataCleaner / canonical schema**: transforms CSV rows to canonical fields: `groupId, extAgent, travelerId, name, passportNumber, passportHash, dob, phoneE164, arrivalISO, departureISO, flightNo, hotelId, visaProgramId`.
+* **aiService**: accepts structured non-PII features; returns `riskScore`, `riskReason`; supports batching, caching, rate-limit backoff.
+* **nusukBulkImporter**: primary connector to NUSUK — either an API client or a queue-driven Playwright RPA worker that auto-fills and scrapes statuses. Provides structured status results per traveler and retry metadata.
+* **workflowService**: step engine mapping group -> step (1..6), exposes `advanceStep`, `onStepChange`.
+* **messageService**: template engine + WhatsApp deep-link builder; tracks `messageStatus` in DB.
+* **exportService**: client-side PDF generator (jsPDF / HTML→PDF) for standardized reports.
+* **auditService**: logs actions: `log(agentId, action, target, payloadHash, timestamp)`; optional remote push to `LOG_SERVER_URL`.
+* **ui hooks**: `useGroup`, `useLiveQuery`, event bus via `BroadcastChannel('umrahops')` for cross-tab sync.
+
+---
+
+## Data model (essential tables)
+
+* `groups(id, name, extAgent, startDate, endDate, stepsCompleted, createdBy)`
+* `travelers(id, groupId, name, passportNumber (stored hashed), passportHash, dob, phone, arrivalISO, departureISO, flightNo, hotelId, visaProgramId, riskScore, riskReason, nusukStatus, messageStatus)`
+* `hotels(id, name, rooms, inventory)`
+* `bookings(travelerId, hotelId, roomId, checkIn, checkOut)`
+* `audit_logs(id, agentId, action, targetType, targetId, payloadHash, timestamp, prevHash?)`
+* `jobs_queue(id, type, payload, attempts, lastError, status)` — for NUSUK checks, RPA tasks, AI batches.
+
+---
+
+## Integration & configuration (env surface)
+
+Minimum `.env.example` keys:
+
+```
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+OPENAI_API_KEY=
+VITE_NUSUK_URL=    # optional, if NUSUK offers API
+VITE_NUSUK_TOKEN=  # optional
+LOG_SERVER_URL=    # optional
+SQLITE_PATH=./data/umrahops.db
+```
+
+All frontend code must reference `import.meta.env.VITE_*`.
+
+---
+
+## Operational patterns & fallbacks
+
+* **Primary NUSUK path**: API client (preferred).
+* **Fallback**: Rate-limited Playwright RPA worker running headful/headless to auto-fill/collect results; results stored with error codes and retry strategy.
+* **AI calls**: Batch travelers (e.g., groups of 25–50), cache results keyed by fingerprint, and limit exposure to derived features.
+* **Concurrency**: Single-writer DB queue; reads can be concurrent. Use WAL and PRAGMA tuning for SQLite.
+
+---
+
+## Key success metrics (KPIs)
+
+* `Throughput`: travelers processed per operator-hour (goal: 10× current manual).
+* `TimeToConfirm`: avg time from CSV upload → final confirmation.
+* `NUSUK_AutomationCoverage`: % travelers validated automatically (goal: >95%).
+* `ErrorRate`: % rows requiring manual mapping after canonicalization (target: <5%).
+* `AI_precision`: % flagged cases that truly require intervention (target: >80% precision after tuning).
+* `AuditCompleteness`: 100% of writes logged.
+* `PWA_Perf`: FCP <2s on mobile 3G emulation.
+
+---
+
+## Priority implementation roadmap (3 steps)
+
+1. **Sprint A (core enablement)**: `.env.example`, db init + write-queue, canonical schema + robust CSV mapping UI.
+2. **Sprint B (automation & safety)**: nusukBulkImporter MVP (API client or RPA scaffold), aiService with hashing & batching, workflowService hooks + BroadcastChannel sync.
+3. **Sprint C (ops polish)**: audit chain-hash, exception human-review queue, messaging lifecycle tracking, PDF templates, PWA performance tuning, security hardening.
+
+---
+
+## One-sentence elevator (final)
+
+UmrahOps is a local-first, developer-friendly PWA that converts messy group spreadsheets into a validated, auditable, offline-capable operations platform — automating visa/program checks and prioritizing high-risk travelers while keeping all sensitive data local and configurable via a single `.env`.
+
+If you want, I can now convert this into a machine-usable JSON schema (services, table schemas, job types, env keys, and endpoints) for programmatic onboarding. Which format do you prefer?

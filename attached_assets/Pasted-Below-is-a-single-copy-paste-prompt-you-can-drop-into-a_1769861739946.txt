@@ -1,0 +1,120 @@
+Below is a single, copy-paste prompt you can drop into a dev task generator, an LLM code assistant, or hand to an engineer. It implements **all sprints** A→C on Replit where possible, and **explicitly separates** what must be done locally/manual after you download the repo. Keep it short, precise, and actionable.
+
+# Final Implementation Prompt — UmrahOps (Replit-first, local-ready)
+
+Goal: Implement Sprints A–C for UmrahOps on Replit (or similar cloud dev host) with complete code, minimal heavy runtime on Replit, full documentation, and explicit, step-by-step instructions for any manual/local work required after repo download. Produce runnable frontend, service stubs, tests, CI hints, and a compact developer handbook that tells an engineer exactly what to run locally and why.
+
+## Constraints / priorities (non-negotiable)
+
+* All external keys must be read from `import.meta.env.VITE_*`. Provide `/.env.example`. Do not embed secrets.
+* Replit should host only safe, lightweight services (frontend + non-blocking stubs). Heavy, stateful tasks (Playwright RPA headful runs, persistent SQLite durability tuning, encrypted at-rest steps) must be documented to run locally—**do not run those headful tasks on Replit**.
+* Keep bundles small; lazy-load large modules (PDF preview, RPA helper).
+* Deliver readable, surgical docs that clearly mark: **(A) Implemented on Replit**, **(B) To run locally after download**, **(C) Manual/local steps with commands**.
+
+---
+
+## Deliverables (by sprint) — produce these files & docs
+
+### Sprint A — Core enablement (deliver on Replit)
+
+1. `/.env.example` (exact keys):
+
+   ```
+   VITE_SUPABASE_URL=
+   VITE_SUPABASE_ANON_KEY=
+   OPENAI_API_KEY=
+   VITE_NUSUK_URL=
+   VITE_NUSUK_TOKEN=
+   LOG_SERVER_URL=
+   SQLITE_PATH=./data/umrahops.db
+   ```
+2. `README.md` — top-level developer handbook containing: one-line project aim, quick start (Replit), local run instructions, and “What runs only locally” section.
+3. `src/db/init.ts` — SQLite init script that:
+
+   * creates DB if missing,
+   * runs migrations from `db/migrations/*.sql`,
+   * sets pragmas: `WAL`, `synchronous=NORMAL`, `foreign_keys=ON`, `busy_timeout=30000`.
+4. `db/migrations/001_init.sql` — base schema: groups, travelers, hotels, bookings, audit_logs, jobs_queue, indexes.
+5. `src/services/dbService.ts` — wrapper with read API and a **write-queue** worker (FIFO) for safe serial writes. Export: `getGroups(agentId)`, `getTravelers(groupId)`, `insertBulkTravelers(rows)`, `updateTraveler`, `enqueueJob`.
+6. `src/schemas/canonical.ts` + `src/utils/validators.ts` (zod or superstruct) + `src/utils/dataCleaner.ts` — canonical field map and validation rules with explicit error codes.
+7. `src/components/Uploader.tsx` — CSV uploader (PapaParse), mapping UI to canonical fields, preview diff modal for mismatched columns.
+8. `src/hooks/useGroup.ts` & `src/hooks/useLiveQuery.ts` — React hooks wired to dbService and `BroadcastChannel('umrahops')`.
+9. `src/services/workflowService.ts` — API: `getStep(groupId)`, `advanceStep(groupId, step)`, `onStepChange(callback)`.
+10. `src/components/LandingPage.tsx` — landing page (sign-up/login toggles, light/dark + EN/UR toggles, blueprint accordion), ready to integrate Supabase auth (auth stubbed if keys missing).
+11. Minimal test suite (Jest/ Vitest): one test per service skeleton (dbService write-queue, validator).
+12. `scripts/startupCheck.ts` — on boot, verify required `import.meta.env` vars and `SQLITE_PATH` presence; produce friendly error messages.
+
+### Sprint B — Automation & safety (deliver stubs + local-run guides)
+
+1. `src/services/aiService.ts` — implementation contract:
+
+   * **Accepts**: structured feature object (no PII), batch API, cache layer (`ai/cache.json`), retry/backoff.
+   * **Returns**: `{travelerId, riskScore, riskReason}`.
+   * Implement mock mode (if `OPENAI_API_KEY` missing) returning deterministic test flags.
+2. `src/services/nusukBulkImporter.ts` — two-mode connector:
+
+   * **Mode A (API)**: if `VITE_NUSUK_URL` present, client that POSTs bulk and returns statuses.
+   * **Mode B (RPA stub)**: create a lightweight stub that enqueues `jobs_queue` entries and writes `jobs_queue` rows with status `pending`. DOES NOT run Playwright on Replit.
+   * Provide `scripts/rpa/README.md` describing how to run actual Playwright locally (commands, Docker support, environment setup).
+   * Provide `scripts/rpa/nusuk_rpa_stub.ts` showing the Playwright script skeleton and exact selectors to fill (placeholder) and how to map scraped output to the `nusukStatus` format.
+3. `src/services/auditService.ts` — writes to `audit_logs` and computes `payloadHash` + `prevHash` for chain; optional `LOG_SERVER_URL` push if env present (must be opt-in: `REACT_APP_REMOTE_LOGS=true` or similar).
+4. `src/services/messageService.ts` — WhatsApp deep-link generator, templates folder, mark-sent API that updates `messageStatus` + audit entry.
+5. `docs/manual_local_steps.md` — step-by-step for local-only tasks: Playwright runs, SQLite WAL tuning, encrypting DB at rest (recommend libs), and running RPA safely. Include commands for Linux/macOS/Windows, Docker example, and expected outputs.
+
+### Sprint C — Ops polish (deliver on Replit where safe + local instructions)
+
+1. `src/services/exportService.ts` — jsPDF HTML→PDF generator, small templates, preview modal. Lazy-load module.
+2. `src/components/Dashboard.tsx` & `src/components/GroupDetail.tsx` — core UI pages (use services hooks above). Wire actions to auditService.
+3. `src/services/jobQueue.ts` — job dequeue worker (non-blocking) to run in Replit for safe tasks; provide `enqueueLocalOnlyJob` marker for local-only jobs (RPA).
+4. `performance/` — service worker template, code-split points, dynamic font loader for Urdu (load on toggle).
+5. `ci/` — lightweight CI config (GitHub Actions) that runs lint, tests, and startupCheck, but **does not** run Playwright headful RPA.
+6. `docs/deploy_replit.md` — exact steps and resource limits guidance: do not enable headful browsers; set build & run limits; recommend running Playwright locally or via self-hosted runner.
+
+---
+
+## “What you must run locally” (clear, 1-line bullets)
+
+* Playwright RPA workers (headful or headless with chromium) — `scripts/rpa/nusuk_rpa.ts`.
+* Full SQLite durability checks & optional DB encryption (apply PRAGMA and file-level encryption tools).
+* Any scheduled background worker that needs persistent process (long-running RPA with Puppeteer)/heavy CPU.
+* Optional: local OpenAI high-throughput batches if you exceed Replit rate limits/cost.
+
+---
+
+## Acceptance criteria (how the generator should prove success)
+
+* `npm run dev` on Replit boots frontend, `startupCheck` passes with no secrets (it warns if missing).
+* CSV upload → canonical preview → insertBulkTravelers() writes to SQLite file at `SQLITE_PATH` and returns a visible group on Dashboard.
+* `aiService` returns deterministic mock risk scores when `OPENAI_API_KEY` absent.
+* `nusukBulkImporter` enqueues jobs into `jobs_queue` and exposes status UI; `scripts/rpa/README.md` explains exactly how to run real RPA locally to process those jobs.
+* `auditService` writes chained hashes; `audit_logs` table readable in Audit Page.
+* `README.md` and `docs/manual_local_steps.md` contain explicit commands for local-only steps and a checklist titled “What to run locally after download”.
+
+---
+
+## Developer handbook requirements (must be generated)
+
+* Short summary (1 sentence), and a 7-line quickstart: Replit start, set `.env`, run dev, run tests, open demo URL.
+* Section: “Local-only procedures” with commands and why.
+* Section: “Security checklist before production” (4 bullet points: env secrets, DB encryption, audit remote opt-in, token storage).
+* Table mapping features → status: `Done on Replit` | `Stub on Replit` | `Local only` with percent complete estimates.
+
+---
+
+## Resource-sparing constraints to include in the prompt
+
+* “Do not execute Playwright or long-lived headful browsers on Replit; only provide stubs and local-run instructions.”
+* “Keep main bundle < 400 KB initial, lazy-load PDF & RPA helpers.”
+* “CI must not run Playwright headful tasks.”
+
+---
+
+## Output format (what the assistant must return)
+
+1. A zip-ready repo scaffold or file list with code for all files above (or instructions to create them).
+2. `README.md` + `docs/manual_local_steps.md` + `scripts/rpa/README.md` complete and exact.
+3. A short checklist (5 items) at the end of the response that tells a human operator what to run locally first after cloning.
+
+---
+
+Paste the prompt above into your code generator/LLM or hand it to an engineer. If you want, I can now generate the concrete repo scaffold (files listed above) ready to copy into your project — tell me “Generate scaffold” and specify whether to produce full file contents in this chat or a downloadable archive.
