@@ -17,8 +17,8 @@
 
 ```bash
 # 1. Clone
-git clone https://github.com/gravemont-technologies/umrahos.git
-cd umrahos
+git clone https://github.com/truegvmt/umrahops.git
+cd umrahops
 
 # 2. Install
 npm install
@@ -246,6 +246,6 @@ For **production/heavy workloads**, also run:
 
 ## Support & Contributing
 
-- **Issues:** https://github.com/gravemont-technologies/umrahos/issues
+- **Issues:** https://github.com/truegvmt/umrahops/issues
 - **Docs:** `docs/` folder in repo
 - **License:** MIT
