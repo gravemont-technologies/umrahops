@@ -26,7 +26,7 @@ import { ObjectivesPanel } from "@/components/demo/ObjectivesPanel";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Dashboard() {
-  const { t } = useLanguage();
+  const { t, isRtl } = useLanguage();
   const { data: groups, isLoading: groupsLoading } = useGroups();
   const { data: jobs, isLoading: jobsLoading } = useJobs();
 

@@ -9,33 +9,33 @@ import { MessageSquare, Zap, X, Send, Bot, ChevronUp } from "lucide-react";
 
 const BOOSTS = [
     {
-        title: "Ask questions to your Excel file",
-        content: "Don't manually filter. Upload your sheet to Copilot/ChatGPT and ask: 'Identify groups with >5 travelers missing photos'. It saves ~15 mins per group."
+        title: "boost1Title",
+        content: "boost1Content"
     },
     {
-        title: "Browser Profiles",
-        content: "Create a dedicated Chrome Profile for 'Umrah Operations' with NUSUK auto-login. Keeps cookies separate from personal browsing."
+        title: "boost2Title",
+        content: "boost2Content"
     },
     {
-        title: "Whatsapp Web Shortcuts",
-        content: "Use 'Ctrl + Alt + N' to start a new chat quickly. Use templates stored in this app to avoid re-typing."
+        title: "boost3Title",
+        content: "boost3Content"
     }
 ];
 
 const WITTY_RESPONSES: Record<string, string> = {
-    delay: "Tell them: 'The visa server is feeling moody today, but I'm charming it. Need that file ASAP to keep the mood up!'",
-    urgent: "Reply: 'On it faster than a taxi to Haram at 3 AM.'",
-    coffee: "I can't pour coffee, but I can pour data. Go get a V60 to maximize focus.",
-    hello: "Salaam! I'm here to keep your workflow flowing. Ask me for a boost or a joke.",
-    help: "I can help with: 'delaying colleague', 'how to scan', 'boost productivity'.",
-    scan: "To scan passports: Go to Group Details > Upload CSV or click the 'Run Risk Scan' button.",
+    delay: "respDelay",
+    urgent: "respUrgent",
+    coffee: "respCoffee",
+    hello: "respHello",
+    help: "respHelp",
+    scan: "respScan",
 };
 
 export function OfficeAssistant() {
-    const { t } = useLanguage();
+    const { t, isRtl } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<{ role: 'user' | 'bot', text: string }[]>([
-        { role: 'bot', text: "Salaam! Operations Assistant online. How can I help?" }
+        { role: 'bot', text: t("officeAssistantWelcome") }
     ]);
     const [input, setInput] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -54,25 +54,27 @@ export function OfficeAssistant() {
         setInput("");
 
         // Simple rule-based logic
-        let botResponse = "I'm just a simple rule-based bot. Try asking about 'delay' or 'help'.";
+        let botResponseKey = "respDefault";
         const lower = userMsg.toLowerCase();
 
-        if (lower.includes('delay') || lower.includes('late')) botResponse = WITTY_RESPONSES.delay;
-        else if (lower.includes('urgent') || lower.includes('asap')) botResponse = WITTY_RESPONSES.urgent;
-        else if (lower.includes('coffee') || lower.includes('tired')) botResponse = WITTY_RESPONSES.coffee;
-        else if (lower.includes('hello') || lower.includes('hi') || lower.includes('salaam')) botResponse = WITTY_RESPONSES.hello;
-        else if (lower.includes('scan') || lower.includes('upload')) botResponse = WITTY_RESPONSES.scan;
-        else if (lower.includes('help')) botResponse = WITTY_RESPONSES.help;
+        if (lower.includes('delay') || lower.includes('late')) botResponseKey = "delay";
+        else if (lower.includes('urgent') || lower.includes('asap')) botResponseKey = "urgent";
+        else if (lower.includes('coffee') || lower.includes('tired')) botResponseKey = "coffee";
+        else if (lower.includes('hello') || lower.includes('hi') || lower.includes('salaam')) botResponseKey = "hello";
+        else if (lower.includes('scan') || lower.includes('upload')) botResponseKey = "scan";
+        else if (lower.includes('help')) botResponseKey = "help";
+
+        const responseText = WITTY_RESPONSES[botResponseKey] ? t(WITTY_RESPONSES[botResponseKey]) : t("respDefault");
 
         setTimeout(() => {
-            setMessages(prev => [...prev, { role: 'bot', text: botResponse }]);
+            setMessages(prev => [...prev, { role: 'bot', text: responseText }]);
         }, 500);
     };
 
     if (!isOpen) {
         return (
             <Button
-                className="fixed bottom-4 right-4 rounded-full h-12 w-12 shadow-lg z-50 bg-primary hover:bg-primary/90"
+                className={`fixed bottom-4 ${isRtl ? "left-4" : "right-4"} rounded-full h-12 w-12 shadow-lg z-50 bg-primary hover:bg-primary/90`}
                 onClick={() => setIsOpen(true)}
             >
                 <Bot className="h-6 w-6 text-white" />
@@ -81,8 +83,8 @@ export function OfficeAssistant() {
     }
 
     return (
-        <Card className="fixed bottom-4 right-4 w-80 h-[500px] shadow-2xl z-50 flex flex-col animate-in slide-in-from-bottom-10 fade-in duration-300 border-primary/20">
-            <CardHeader className="p-3 border-b bg-muted/50 flex flex-row items-center justify-between space-y-0">
+        <Card className={`fixed bottom-4 ${isRtl ? "left-4" : "right-4"} w-80 h-[500px] shadow-2xl z-50 flex flex-col animate-in slide-in-from-bottom-10 fade-in duration-300 border-primary/20`}>
+            <CardHeader className="p-3 border-b bg-muted/50 flex flex-row items-center justify-between space-y-0 text-foreground">
                 <div className="flex items-center gap-2">
                     <Bot className="h-4 w-4 text-primary" />
                     <CardTitle className="text-sm font-bold">{t("officeAssistant")}</CardTitle>
@@ -116,25 +118,25 @@ export function OfficeAssistant() {
                             value={input}
                             onChange={e => setInput(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleSend()}
-                            placeholder="Type message..."
+                            placeholder={t("typeMessage")}
                             className="h-8 text-sm"
                         />
                         <Button size="icon" className="h-8 w-8" onClick={handleSend}>
-                            <Send className="h-4 w-4" />
+                            <Send className={`h-4 w-4 ${isRtl ? "rotate-180" : ""}`} />
                         </Button>
                     </div>
                 </TabsContent>
 
                 <TabsContent value="boosts" className="flex-1 overflow-y-auto p-4 space-y-4 m-0">
-                    <div className="text-xs text-muted-foreground mb-2">High-leverage productivity hacks.</div>
+                    <div className="text-xs text-muted-foreground mb-2">{t("productivityHacks")}</div>
                     {BOOSTS.map((boost, i) => (
                         <div key={i} className="border rounded-md p-3 bg-card shadow-sm">
                             <div className="flex items-center gap-2 mb-1.5 font-semibold text-sm text-primary">
                                 <Zap className="h-3 w-3" />
-                                {boost.title}
+                                {t(boost.title)}
                             </div>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                {boost.content}
+                                {t(boost.content)}
                             </p>
                         </div>
                     ))}
