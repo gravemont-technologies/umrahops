@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes, seedDatabase } from "./routes.js";
 import { serveStatic } from "./static.js";
