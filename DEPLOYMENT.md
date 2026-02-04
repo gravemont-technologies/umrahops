@@ -1,282 +1,80 @@
-# UmrahOps Vercel Deployment (Authoritative)
+# UmrahOps Deployment Pivot: Render (Split Hosting)
 
-## Purpose
-
-This document defines the **only correct mental model and procedure** for deploying UmrahOps to Vercel. This is a **serverless deployment**, not a traditional Express server. Treat it as such or the system will fail.
+This guidance supersedes previous Vercel instructions. We are switching to **Render** to support a persistent Node.js backend and a decoupled static frontend.
 
 ---
 
-## Reality Check (Read First)
+## 🏗️ Architecture: Split Deployment
 
-* Vercel **does not run persistent servers**
-* Express is **not** deployed as a server
-* Express is compiled and **executed per-request** inside a serverless function
-* All filesystem writes are **ephemeral**
-* All state must live in **external services**
+We are splitting the application into two discrete services:
 
-If you expect:
-
-* long‑running processes
-* WebSockets
-* cron jobs
-* background workers
-* persistent SQLite
-
-**Stop. This platform is wrong for that use case.**
+1.  **Frontend (Static Site)**: Served via CDN/Nginx. Built to `dist/public`.
+2.  **Backend (Web Service)**: Persistent Node.js/Express server. Built to `dist/server/index.js`.
 
 ---
 
-## Architecture (Actual)
+## 1. Build Verification (Local)
 
-* **Frontend**: Vite + React → static assets
-* **Backend**: Express app → imported as a handler
-* **Runtime**: Vercel Serverless Functions (cold starts)
-* **Database**:
+Before deploying, verify the new split build process locally:
 
-  * Local dev: SQLite
-  * Production: PostgreSQL (Supabase / Vercel Postgres mandatory)
-
-There is no shared runtime between frontend and backend.
-
----
-
-## Build Contract
-
-The build must produce **exactly**:
-
-```
-api/
-└── serverless.js   # The bundled Express app (Surgical One-File Function)
-dist/
-└── public/        # Static frontend (Vercel CDN)
-```
-
-If this contract is broken, deployment fails.
+1.  **Install Dependencies**:
+    ```bash
+    npm install
+    ```
+2.  **Build Both Artifacts**:
+    ```bash
+    npm run build
+    ```
+    *   Verify `dist/public/index.html` exists.
+    *   Verify `dist/server/index.js` exists.
+3.  **Test Backend Startup**:
+    ```bash
+    npm run start:prod
+    ```
+    *   Server should start on port 5000.
 
 ---
 
-## Pre‑Deployment Checklist (Non‑Negotiable)
+## 2. Deploy Client (Render Static Site)
 
-### 1. Install Dependencies
-
-```bash
-npm install
-```
-
-Ensures all runtime and type dependencies exist, including `@types/better-sqlite3`.
-
----
-
-### 2. Local Production Build
-
-```bash
-npm run build
-```
-
-**Must succeed with zero errors.**
-
-Verify outputs:
-
-* `dist/public/index.html` exists
-* `dist/index.cjs` exists
+1.  Create a **Static Site** on Render.
+2.  **Repo**: `gravemont-technologies/umrahops`
+3.  **Build Command**: `npm install && npm run build:client`
+4.  **Publish Directory**: `dist/public`
+5.  **Environment Variables**:
+    *   `VITE_API_BASE_URL`: The URL of your deployed Backend (e.g., `https://umrahops-api.onrender.com`).
+    *   `VITE_SUPABASE_URL`: Your Supabase URL.
+    *   `VITE_SUPABASE_ANON_KEY`: Your Supabase Anon Key.
 
 ---
 
-### 3. Local Production Simulation
+## 3. Deploy Server (Render Web Service)
 
-```bash
-npm start
-```
-
-Verify:
-
-* App loads on `http://localhost:5000`
-* `/api/*` routes respond
-* No filesystem assumptions
-* No long‑running state
-
----
-
-## Vercel Deployment Procedure
-
-### Step 1: Push to GitHub
-
-```bash
-git add .
-git commit -m "deploy: vercel serverless build"
-git push origin main
-```
+1.  Create a **Web Service** on Render.
+2.  **Repo**: `gravemont-technologies/umrahops`
+3.  **Runtime**: Node
+4.  **Build Command**: `npm install && npm run build:server`
+5.  **Start Command**: `npm run start:prod`
+6.  **Environment Variables**:
+    *   `CLIENT_ORIGIN`: The URL of your deployed Frontend (e.g., `https://umrahops.onrender.com`).
+    *   `DATABASE_URL`: Connection string for PostgreSQL (Supabase).
+    *   `OPENAI_API_KEY`: Your OpenAI Key.
+    *   `NODE_ENV`: `production`
 
 ---
 
-### Step 2: Import into Vercel
+## 4. Connectivity & CORS
 
-* New Project → Import GitHub repo
-* Repo: `truegvmt/umrahops`
-
----
-
-### Step 3: Build Settings (Exact)
-
-| Setting          | Value           |
-| ---------------- | --------------- |
-| Framework        | **Other**       |
-| Build Command    | `npm run build` |
-| Output Directory | `dist/public`   |
-| Install Command  | `npm install`   |
-| Node Version     | 18.x or 20.x    |
-
-Do **not** select Vite.
+*   **Frontend**: The client automatically prepends `VITE_API_BASE_URL` to all `/api/...` requests via a refined fetch interceptor.
+*   **Backend**: The server is configured with `cors` to accept requests from `CLIENT_ORIGIN`.
 
 ---
 
-### Step 4: Environment Variables
+## 5. Troubleshooting
 
-```
-NODE_ENV=production
-SQLITE_PATH=/tmp/umrahops.db
-```
+*   **CORS Errors**: Ensure `CLIENT_ORIGIN` on the Backend matches the Frontend URL exactly (https, no trailing slash).
+*   **404 on API**: Check `VITE_API_BASE_URL` on the Frontend.
+*   **Database**: Ensure `DATABASE_URL` is correct and the database is accessible from Render.
 
-SQLite is tolerated **only** for demos.
-
----
-
-### Step 5: Deploy
-
-Click **Deploy**. No manual steps.
-
----
-
-## How Requests Are Handled (Critical)
-
-1. Browser loads static React app from CDN
-2. API request hits `/api/serverless`
-3. Vercel spins up a function
-4. Express app is imported into memory
-5. Request handled
-6. Function is destroyed
-
-No memory survives between requests.
-
----
-
-## Post‑Deployment Verification
-
-### Build Logs
-
-Confirm:
-
-* `npm install` success
-* `npm run build` success
-* No TypeScript errors
-* `dist/` artifacts present
-
----
-
-### Runtime Validation
-
-Verify:
-
-* UI loads
-* Routes work
-* Language toggle works
-* `/api/stats` responds
-
----
-
-### Function Logs
-
-* No `ERR_MODULE_NOT_FOUND`
-* No filesystem errors
-* No long execution times
-
----
-
-## Known Failure Modes
-
-### Express Treated as Server
-
-**Symptom**: random 500s, cold start bugs
-
-**Cause**: calling `app.listen()` or relying on server state
-
-**Fix**: export Express as handler only
-
----
-
-### SQLite Data Loss
-
-**Symptom**: data resets
-
-**Cause**: ephemeral filesystem
-
-**Fix**: migrate database
-
----
-
-### Static Files Not Served
-
-**Symptom**: blank page
-
-**Fix**:
-
-* Ensure `dist/public/index.html` exists
-* Ensure `vercel.json` routes fallback to `/api/serverless`
-
----
-
-## Production Migration (Required)
-
-### Database
-
-SQLite must be removed.
-
-Use one:
-
-* Supabase PostgreSQL (recommended)
-* Vercel Postgres
-
-Set:
-
-```
-DATABASE_URL=postgresql://...
-```
-
----
-
-### Session & Secrets
-
-```
-SESSION_SECRET=<random>
-```
-
-No hardcoded secrets.
-
----
-
-## When to Abandon Vercel
-
-Migrate backend elsewhere if you need:
-
-* WebSockets
-* queues
-* workers
-* cron
-* heavy DB usage
-* predictable latency
-
-Frontend can stay on Vercel.
-
----
-
-## Status
-
-This deployment is **valid, correct, and limited by design**.
-
-It is an **entry‑phase architecture**, not a final system.
-
----
-
-**Last Updated**: 2026‑02‑02  
-**Node**: 20.x  
-**Vercel CLI**: 50.x
+**Last Updated**: 2026-02-04
+**Strategy**: Split Hosting (Render Static + Render Web Service)
