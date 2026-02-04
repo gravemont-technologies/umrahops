@@ -1,5 +1,5 @@
-// @ts-nocheck
-import { db } from "./db";
+
+import { db } from "./db.js";
 import {
   groups, travelers, hotels, bookings, jobsQueue, auditLogs, objectives,
   type Group, type InsertGroup,
@@ -9,7 +9,7 @@ import {
   type AuditLog,
   type Objective, type InsertObjective,
   insertJobSchema
-} from "@shared/schema";
+} from "../shared/schema.js";
 import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 
@@ -21,6 +21,7 @@ export interface IStorage {
   getGroup(id: string): Promise<Group | undefined>;
   createGroup(group: InsertGroup): Promise<Group>;
   updateGroup(id: string, group: Partial<InsertGroup>): Promise<Group>;
+  deleteGroup(id: string): Promise<void>;
 
   // Travelers
   getTravelers(groupId: string): Promise<Traveler[]>;
@@ -49,7 +50,7 @@ export class SQLiteStorage implements IStorage {
   }
 
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
-    const [group] = await db.insert(groups).values(insertGroup).returning();
+    const [group] = await db.insert(groups).values(insertGroup as any).returning();
     return group;
   }
 
@@ -58,19 +59,23 @@ export class SQLiteStorage implements IStorage {
     return group;
   }
 
+  async deleteGroup(id: string): Promise<void> {
+    await db.delete(groups).where(eq(groups.id, id));
+  }
+
   // Travelers
   async getTravelers(groupId: string): Promise<Traveler[]> {
     return await db.select().from(travelers).where(eq(travelers.groupId, groupId));
   }
 
   async createTraveler(insertTraveler: InsertTraveler): Promise<Traveler> {
-    const [traveler] = await db.insert(travelers).values(insertTraveler).returning();
+    const [traveler] = await db.insert(travelers).values(insertTraveler as any).returning();
     return traveler;
   }
 
   async bulkCreateTravelers(insertTravelers: InsertTraveler[]): Promise<Traveler[]> {
     if (insertTravelers.length === 0) return [];
-    return await db.insert(travelers).values(insertTravelers).returning();
+    return await db.insert(travelers).values(insertTravelers as any).returning();
   }
 
   async updateTraveler(id: string, updates: Partial<InsertTraveler>): Promise<Traveler> {
@@ -84,7 +89,7 @@ export class SQLiteStorage implements IStorage {
   }
 
   async createHotel(insertHotel: { name: string; city: string }): Promise<Hotel> {
-    const [hotel] = await db.insert(hotels).values(insertHotel).returning();
+    const [hotel] = await db.insert(hotels).values(insertHotel as any).returning();
     return hotel;
   }
 
@@ -94,7 +99,7 @@ export class SQLiteStorage implements IStorage {
   }
 
   async createBooking(insertBooking: { groupId: string; hotelId: string; checkIn: string; checkOut: string }): Promise<Booking> {
-    const [booking] = await db.insert(bookings).values(insertBooking).returning();
+    const [booking] = await db.insert(bookings).values(insertBooking as any).returning();
     return booking;
   }
 
@@ -104,7 +109,7 @@ export class SQLiteStorage implements IStorage {
   }
 
   async enqueueJob(insertJob: InsertJob): Promise<Job> {
-    const [job] = await db.insert(jobsQueue).values(insertJob).returning();
+    const [job] = await db.insert(jobsQueue).values(insertJob as any).returning();
     return job;
   }
 
@@ -117,13 +122,13 @@ export class SQLiteStorage implements IStorage {
   }
 
   async createObjective(insertObjective: InsertObjective): Promise<Objective> {
-    const [objective] = await db.insert(objectives).values(insertObjective).returning();
+    const [objective] = await db.insert(objectives).values(insertObjective as any).returning();
     return objective;
   }
 
   async updateObjective(id: string, completed: boolean): Promise<Objective> {
     const [objective] = await db.update(objectives)
-      .set({ isCompleted: completed })
+      .set({ isCompleted: completed } as any)
       .where(eq(objectives.id, id))
       .returning();
     return objective;
@@ -189,4 +194,3 @@ export class SQLiteStorage implements IStorage {
 }
 
 export const storage = new SQLiteStorage();
-

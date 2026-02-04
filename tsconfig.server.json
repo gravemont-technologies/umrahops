@@ -1,18 +1,24 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
+        "module": "CommonJS",
+        "moduleResolution": "node",
         "outDir": "dist/server",
+        "noEmit": false,
         "declaration": false,
+        "allowImportingTsExtensions": false,
         "types": [
             "node"
         ],
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "esModuleInterop": true
     },
     "include": [
         "server/**/*.ts",
         "shared/**/*.ts"
     ],
     "exclude": [
+        "client",
         "server/vite.ts"
     ]
 }

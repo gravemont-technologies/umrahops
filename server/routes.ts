@@ -1,8 +1,8 @@
-// @ts-nocheck
+
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { api } from "@shared/routes";
+import { storage } from "./storage.js";
+import { api } from "../shared/routes.js";
 import { z } from "zod";
 
 export async function registerRoutes(
@@ -42,6 +42,29 @@ export async function registerRoutes(
         return res.status(400).json({ message: err.errors[0].message });
       }
       throw err;
+    }
+  });
+
+  app.delete('/api/groups/:id', async (req, res) => {
+    try {
+      const id = req.params.id;
+      const group = await storage.getGroup(id);
+      if (!group) return res.status(404).json({ message: "Group not found" });
+
+      await storage.deleteGroup(id);
+
+      // Audit Log
+      await storage.createAuditLog({
+        entityType: 'group',
+        entityId: id,
+        action: 'delete',
+        payload: { name: group.name },
+        createdAt: new Date()
+      });
+
+      res.status(204).send();
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
     }
   });
 
@@ -213,7 +236,7 @@ export async function registerRoutes(
       };
 
       const message = templates[template] || templates.confirmation;
-      const { messageService } = await import('./services/messageService');
+      const { messageService } = await import('./services/messageService.js');
 
       const link = messageService.generateWhatsAppLink(phone, message);
       await messageService.markAsSent(travelerId, template);
@@ -246,7 +269,7 @@ export async function registerRoutes(
       }
 
       // Import AI service lazily to avoid circular deps
-      const { aiService } = await import('./services/aiService');
+      const { aiService } = await import('./services/aiService.js');
       const crypto = await import('crypto');
 
       // Prepare features for AI (PII-safe)

@@ -1,12 +1,9 @@
-// Vercel Serverless Function Entry Point
-// Loads the transpiled Express app (not bundled)
+// Vercel Serverless Function Entry Point (ESM)
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const path = require('path');
+// Import the transpiled app from dist/server/server/index.js
+// Note: tsc creates a nested 'server' folder because it mirrors src structure
+import app from '../dist/server/server/index.js';
 
-// Import the transpiled app from dist/server/
-const appModule = require(path.join(process.cwd(), 'dist', 'server', 'index.js'));
-
-// The build exports as 'default' in ESM, which becomes 'default' property in CJS
-const app = appModule.default || appModule;
-
-module.exports = app;
+export default app;

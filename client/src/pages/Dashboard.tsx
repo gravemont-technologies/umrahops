@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { ObjectivesPanel } from "@/components/demo/ObjectivesPanel";
+import { ObjectivesPanel } from "@/components/objectives/ObjectivesPanel";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Dashboard() {

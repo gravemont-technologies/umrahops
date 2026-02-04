@@ -1,7 +1,7 @@
 // @ts-nocheck
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes, seedDatabase } from "./routes";
-import { serveStatic } from "./static";
+import { registerRoutes, seedDatabase } from "./routes.js";
+import { serveStatic } from "./static.js";
 import { createServer } from "http";
 
 const app = express();
@@ -86,7 +86,7 @@ app.use((req, res, next) => {
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
-    const { setupVite } = await import("./vite");
+    const { setupVite } = await import("./vite.js");
     await setupVite(httpServer, app);
   }
 

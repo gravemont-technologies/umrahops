@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { storage } from "../storage";
+import { storage } from "../storage.js";
 
 export class MessageService {
   generateWhatsAppLink(phone: string, text: string): string {

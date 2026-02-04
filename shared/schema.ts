@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -130,15 +130,15 @@ export const chatRules = sqliteTable("chat_rules", {
 // (Skipping complex relations for now, can be added if needed for query helpers)
 
 // === BASE SCHEMAS ===
-export const insertGroupSchema = createInsertSchema(groups).omit({ id: true, createdAt: true });
-export const insertTravelerSchema = createInsertSchema(travelers).omit({ id: true, createdAt: true });
-export const insertHotelSchema = createInsertSchema(hotels).omit({ id: true, createdAt: true });
-export const insertBookingSchema = createInsertSchema(bookings).omit({ id: true, createdAt: true });
-export const insertJobSchema = createInsertSchema(jobsQueue).omit({ id: true, createdAt: true, result: true });
-export const insertTodoSchema = createInsertSchema(todos).omit({ id: true, createdAt: true });
-export const insertMessageTemplateSchema = createInsertSchema(messageTemplates).omit({ id: true, createdAt: true });
-export const insertBoostSchema = createInsertSchema(boosts).omit({ id: true, createdAt: true });
-export const insertChatRuleSchema = createInsertSchema(chatRules).omit({ id: true, createdAt: true });
+export const insertGroupSchema = createInsertSchema(groups);
+export const insertTravelerSchema = createInsertSchema(travelers);
+export const insertHotelSchema = createInsertSchema(hotels);
+export const insertBookingSchema = createInsertSchema(bookings);
+export const insertJobSchema = createInsertSchema(jobsQueue);
+export const insertTodoSchema = createInsertSchema(todos);
+export const insertMessageTemplateSchema = createInsertSchema(messageTemplates);
+export const insertBoostSchema = createInsertSchema(boosts);
+export const insertChatRuleSchema = createInsertSchema(chatRules);
 
 // === EXPLICIT API CONTRACT TYPES ===
 

@@ -9,7 +9,7 @@ import {
   insertJobSchema,
   auditLogs,
   csvImportSchema
-} from './schema';
+} from './schema.js';
 
 export const errorSchemas = {
   validation: z.object({

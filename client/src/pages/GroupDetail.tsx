@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { useGroup } from "@/hooks/use-groups";
 import { useGroupTravelers } from "@/hooks/use-travelers";
 import { Layout } from "@/components/Layout";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserPlus, ShieldAlert, CheckCircle2, Loader2, Send, Copy } from "lucide-react";
+import { ArrowLeft, UserPlus, ShieldAlert, CheckCircle2, Loader2, Send, Copy, Trash2 } from "lucide-react";
 import { Link } from "wouter";
 import { CsvUploader } from "@/components/CsvUploader";
 import { useToast } from "@/hooks/use-toast";
@@ -25,13 +25,31 @@ import { format } from "date-fns";
 export default function GroupDetail() {
   const { t, isRtl } = useLanguage();
   const [, params] = useRoute("/dashboard/groups/:id");
-  const groupId = params?.id || "";
+  const groupId = params?.id ?? "";
 
   const { data: group, isLoading: groupLoading } = useGroup(groupId);
   const { data: travelers, isLoading: travelersLoading, refetch: refetchTravelers } = useGroupTravelers(groupId);
   const [isScanning, setIsScanning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
+  const handleDelete = async () => {
+    if (!confirm(t("deleteConfirm") || "Are you sure you want to delete this group? This cannot be undone.")) return;
+    try {
+      const res = await fetch(`/api/groups/${groupId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete group");
+
+      toast({ title: t("groupDeleted") || "Group deleted successfully" });
+      setLocation("/dashboard/groups");
+    } catch (error: any) {
+      toast({
+        title: t("error"),
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleRiskScan = async () => {
     setIsScanning(true);
@@ -118,6 +136,15 @@ export default function GroupDetail() {
           </p>
         </div>
         <div className={`ml-auto flex gap-2 ${isRtl ? "mr-auto ml-0" : ""}`}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive mr-2"
+            onClick={handleDelete}
+            title={t("deleteGroup")}
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
           <Button
             variant="outline"
             className="gap-2"
