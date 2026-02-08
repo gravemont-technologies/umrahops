@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, buildUrl, type InsertGroup, type UpdateGroupRequest } from "@shared/routes";
+import { api, buildUrl } from "@shared/routes";
+import { type InsertGroup, type UpdateGroupRequest } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 export function useGroups() {
@@ -56,10 +57,10 @@ export function useCreateGroup() {
       toast({ title: "Group Created", description: "New group has been successfully created." });
     },
     onError: (error) => {
-      toast({ 
-        title: "Error", 
-        description: error.message || "Failed to create group", 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create group",
+        variant: "destructive"
       });
     }
   });
@@ -73,7 +74,7 @@ export function useUpdateGroup() {
     mutationFn: async ({ id, ...updates }: { id: string } & UpdateGroupRequest) => {
       const validated = api.groups.update.input.parse(updates);
       const url = buildUrl(api.groups.update.path, { id });
-      
+
       const res = await fetch(url, {
         method: api.groups.update.method,
         headers: { "Content-Type": "application/json" },

@@ -2,7 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@shared/routes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
-import { ScrollText } from "lucide-react";
+import { ScrollText, ShieldCheck, ShieldAlert, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -17,11 +21,60 @@ export default function AuditLogs() {
     }
   });
 
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<{ valid: boolean; brokenAt?: string } | null>(null);
+  const { toast } = useToast();
+
+  const handleVerify = async () => {
+    setIsVerifying(true);
+    try {
+      const res = await fetch('/api/audit/verify');
+      const data = await res.json();
+      setVerificationResult(data);
+      if (data.valid) {
+        toast({ title: t("verified") || "Verified", description: t("chainIntact") || "Audit chain integrity is intact." });
+      } else {
+        toast({
+          title: t("verificationFailed") || "Verification Failed",
+          description: `${t("chainBrokenAt") || "Chain broken at"}: ${data.brokenAt}`,
+          variant: "destructive"
+        });
+      }
+    } catch (err: any) {
+      toast({ title: t("error"), description: err.message, variant: "destructive" });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold">{t("auditLogs")}</h1>
-        <p className="text-muted-foreground">{t("auditLogsDesc")}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold">{t("auditLogs")}</h1>
+          <p className="text-muted-foreground">{t("auditLogsDesc")}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {verificationResult && (
+            <Badge variant={verificationResult.valid ? "outline" : "destructive"} className={verificationResult.valid ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : ""}>
+              {verificationResult.valid ? (
+                <><ShieldCheck className="h-3.5 w-3.5 mr-1" /> {t("chainVerified") || "Chain Verified"}</>
+              ) : (
+                <><ShieldAlert className="h-3.5 w-3.5 mr-1" /> {t("chainBroken") || "Chain Broken"}</>
+              )}
+            </Badge>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleVerify}
+            disabled={isVerifying}
+            className="gap-2"
+          >
+            {isVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+            {t("verifyIntegrity") || "Verify Integrity"}
+          </Button>
+        </div>
       </div>
 
       <Card>

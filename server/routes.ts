@@ -112,6 +112,50 @@ export async function registerRoutes(
     }
   });
 
+  app.put(api.travelers.update.path, async (req, res) => {
+    try {
+      const id = String(req.params.id);
+      const input = api.travelers.update.input.parse(req.body);
+      const traveler = await storage.updateTraveler(id, input);
+
+      // Audit
+      await storage.createAuditLog({
+        entityType: 'traveler',
+        entityId: id,
+        action: 'update',
+        payload: input,
+        createdAt: new Date()
+      });
+
+      res.json(traveler);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: err instanceof Error ? err.message : "Internal Server Error" });
+    }
+  });
+
+  app.delete(api.travelers.delete.path, async (req, res) => {
+    try {
+      const id = String(req.params.id);
+      await storage.deleteTraveler(id);
+
+      // Audit
+      await storage.createAuditLog({
+        entityType: 'traveler',
+        entityId: id,
+        action: 'delete',
+        payload: { id },
+        createdAt: new Date()
+      });
+
+      res.status(204).send();
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   // === Jobs ===
   app.get(api.jobs.list.path, async (req, res) => {
     const jobs = await storage.getJobs();
@@ -367,6 +411,18 @@ export async function registerRoutes(
       res.json(result);
     } catch (err: any) {
       res.status(500).json({ valid: false, error: err.message });
+    }
+  });
+
+  // === Messaging ===
+  app.post('/api/messages/send', async (req, res) => {
+    try {
+      const { travelerId, type } = req.body;
+      const { messageService } = await import('./services/messageService.js');
+      await messageService.markAsSent(travelerId, type);
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
     }
   });
 

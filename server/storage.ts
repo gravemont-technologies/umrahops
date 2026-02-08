@@ -28,6 +28,8 @@ export interface IStorage {
   createTraveler(traveler: InsertTraveler): Promise<Traveler>;
   bulkCreateTravelers(travelers: InsertTraveler[]): Promise<Traveler[]>;
   updateTraveler(id: string, traveler: Partial<InsertTraveler>): Promise<Traveler>;
+  deleteTraveler(id: string): Promise<void>;
+
 
   // Jobs
   getJobs(): Promise<Job[]>;
@@ -82,6 +84,11 @@ export class SQLiteStorage implements IStorage {
     const [traveler] = await db.update(travelers).set(updates).where(eq(travelers.id, id)).returning();
     return traveler;
   }
+
+  async deleteTraveler(id: string): Promise<void> {
+    await db.delete(travelers).where(eq(travelers.id, id));
+  }
+
 
   // Hotels
   async getHotels(): Promise<Hotel[]> {

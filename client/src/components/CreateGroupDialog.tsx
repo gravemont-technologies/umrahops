@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
@@ -33,7 +34,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const formSchema = insertGroupSchema.pick({ name: true, status: true });
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  status: z.enum(["draft", "submitted", "approved", "rejected"]).default("draft")
+});
 type FormValues = z.infer<typeof formSchema>;
 
 export function CreateGroupDialog() {
@@ -69,6 +73,9 @@ export function CreateGroupDialog() {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{t("createGroup") || "Create New Group"}</DialogTitle>
+          <DialogDescription>
+            Enter the details for the new Umrah group.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">

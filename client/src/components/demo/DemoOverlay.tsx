@@ -48,7 +48,7 @@ export function DemoOverlay() {
 
     if (!isDemoMode) return null;
 
-    const step = DEMO_STEPS[currentStep] || { title: "demoComplete", description: "demoCompleteDesc", action: "demoFinish" };
+    const step = DEMO_STEPS[currentStep] || { title: "demoComplete", description: "demoCompleteDesc", action: "demoFinish", targetTraveler: null };
     const isLast = currentStep >= DEMO_STEPS.length;
 
     return (

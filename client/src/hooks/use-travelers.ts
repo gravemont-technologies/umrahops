@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, buildUrl, type InsertTraveler } from "@shared/routes";
+import { api, buildUrl } from "@shared/routes";
+import { type InsertTraveler } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 export function useGroupTravelers(groupId: string) {
@@ -49,7 +50,7 @@ export function useBulkCreateTravelers() {
     mutationFn: async (travelers: InsertTraveler[]) => {
       // Validate array
       const validated = api.travelers.bulkCreate.input.parse({ travelers });
-      
+
       const res = await fetch(api.travelers.bulkCreate.path, {
         method: api.travelers.bulkCreate.method,
         headers: { "Content-Type": "application/json" },
@@ -69,10 +70,10 @@ export function useBulkCreateTravelers() {
       toast({ title: "Import Successful", description: `${data.length} travelers imported.` });
     },
     onError: (err) => {
-      toast({ 
-        title: "Import Failed", 
-        description: err.message, 
-        variant: "destructive" 
+      toast({
+        title: "Import Failed",
+        description: err.message,
+        variant: "destructive"
       });
     }
   });

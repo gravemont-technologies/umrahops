@@ -1,0 +1,99 @@
+{
+    "methodology": {
+        "UserImpact": 0.40,
+        "CoreFlowCentrality": 0.25,
+        "UsageFrequency": 0.15,
+        "TechnicalRisk": 0.10,
+        "DevelopmentCost": 0.10
+    },
+    "features": [
+        {
+            "id": "dash-stats",
+            "metrics": {
+                "impact": 90,
+                "centrality": 100,
+                "frequency": 80,
+                "risk": 90,
+                "cost": 80
+            },
+            "vitality": 9.0
+        },
+        {
+            "id": "groups-crud",
+            "metrics": {
+                "impact": 100,
+                "centrality": 100,
+                "frequency": 100,
+                "risk": 100,
+                "cost": 90
+            },
+            "vitality": 9.5
+        },
+        {
+            "id": "travelers-crud",
+            "metrics": {
+                "impact": 100,
+                "centrality": 100,
+                "frequency": 95,
+                "risk": 90,
+                "cost": 85
+            },
+            "vitality": 9.5
+        },
+        {
+            "id": "risk-scan",
+            "metrics": {
+                "impact": 80,
+                "centrality": 90,
+                "frequency": 70,
+                "risk": 90,
+                "cost": 80
+            },
+            "vitality": 8.5
+        },
+        {
+            "id": "nusuk-rpa",
+            "metrics": {
+                "impact": 90,
+                "centrality": 90,
+                "frequency": 80,
+                "risk": 50,
+                "cost": 60
+            },
+            "vitality": 8.0
+        },
+        {
+            "id": "message-wa",
+            "metrics": {
+                "impact": 70,
+                "centrality": 70,
+                "frequency": 80,
+                "risk": 80,
+                "cost": 70
+            },
+            "vitality": 7.5
+        },
+        {
+            "id": "audit-logs",
+            "metrics": {
+                "impact": 40,
+                "centrality": 60,
+                "frequency": 20,
+                "risk": 100,
+                "cost": 90
+            },
+            "vitality": 7.0
+        },
+        {
+            "id": "hotel-copy",
+            "metrics": {
+                "impact": 60,
+                "centrality": 50,
+                "frequency": 70,
+                "risk": 90,
+                "cost": 95
+            },
+            "vitality": 6.5
+        }
+    ]
+}

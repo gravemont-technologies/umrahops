@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserPlus, ShieldAlert, CheckCircle2, Loader2, Send, Copy, Trash2 } from "lucide-react";
+import { ArrowLeft, UserPlus, ShieldAlert, CheckCircle2, Loader2, Send, Copy, Trash2, MessageSquare, Download } from "lucide-react";
 import { Link } from "wouter";
 import { CsvUploader } from "@/components/CsvUploader";
+import { EditTravelerDialog } from "@/components/EditTravelerDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/context/LanguageContext";
+import Papa from "papaparse";
 import {
   Table,
   TableBody,
@@ -24,7 +26,7 @@ import { format } from "date-fns";
 
 export default function GroupDetail() {
   const { t, isRtl } = useLanguage();
-  const [, params] = useRoute("/dashboard/groups/:id");
+  const [, params] = useRoute<{ id: string }>("/dashboard/groups/:id");
   const groupId = params?.id ?? "";
 
   const { data: group, isLoading: groupLoading } = useGroup(groupId);
@@ -33,6 +35,29 @@ export default function GroupDetail() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+
+  const handleExportCsv = () => {
+    if (!travelers || travelers.length === 0) return;
+
+    const csv = Papa.unparse(travelers.map(t => ({
+      name: t.name,
+      passportNumber: t.passportNumber,
+      nationality: t.nationality,
+      dob: t.dob,
+      status: t.nusukStatus || 'pending',
+      riskScore: t.riskScore || 'N/A'
+    })));
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `group_${group?.name || groupId}_travelers.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleDelete = async () => {
     if (!confirm(t("deleteConfirm") || "Are you sure you want to delete this group? This cannot be undone.")) return;
@@ -189,6 +214,9 @@ export default function GroupDetail() {
               <CardTitle>{t("travelers")}</CardTitle>
               <div className="flex gap-2">
                 <CsvUploader groupId={groupId} />
+                <Button size="sm" variant="outline" onClick={handleExportCsv} disabled={!travelers?.length}>
+                  <Download className="h-4 w-4 mr-2" /> {t("exportCsv") || "Export CSV"}
+                </Button>
                 <Button size="sm" variant="ghost">
                   <UserPlus className="h-4 w-4 mr-2" /> {t("manualAdd")}
                 </Button>
@@ -206,16 +234,17 @@ export default function GroupDetail() {
                     <TableHead>{t("nationality")}</TableHead>
                     <TableHead>{t("riskScore")}</TableHead>
                     <TableHead>{t("status")}</TableHead>
+                    <TableHead className="text-right">{t("action")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {travelersLoading ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-24 text-center">{t("loading")}</TableCell>
+                      <TableCell colSpan={6} className="h-24 text-center">{t("loading")}</TableCell>
                     </TableRow>
                   ) : travelers?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                         {t("noTravelersAdded")}
                       </TableCell>
                     </TableRow>
@@ -238,6 +267,59 @@ export default function GroupDetail() {
                               traveler.nusukStatus === 'rejected' ? 'bg-red-500' : 'bg-yellow-500'
                               }`} />
                             <span className="capitalize text-sm">{t(traveler.nusukStatus) || traveler.nusukStatus}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title={t("sendWhatsApp") || "Send WhatsApp"}
+                              onClick={async () => {
+                                const text = `Salaam ${traveler.name}, your Umrah application status is: ${traveler.nusukStatus || 'In Progress'}.`;
+                                const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                                window.open(url, '_blank');
+
+                                // Audit log
+                                await fetch('/api/messages/send', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ travelerId: traveler.id, type: 'status_update' })
+                                });
+                              }}
+                            >
+                              <MessageSquare className="h-4 w-4 text-primary" />
+                            </Button>
+
+                            <EditTravelerDialog
+                              traveler={traveler}
+                              onSuccess={() => refetchTravelers()}
+                            />
+
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title={t("deleteTraveler") || "Delete Traveler"}
+                              onClick={async () => {
+                                if (!confirm(t("deleteTravelerConfirm") || "Are you sure you want to delete this traveler?")) return;
+                                try {
+                                  const res = await fetch(`/api/travelers/${traveler.id}`, { method: 'DELETE' });
+                                  if (!res.ok) throw new Error("Failed to delete traveler");
+                                  toast({
+                                    title: t("travelerDeleted") || "Traveler deleted",
+                                  });
+                                  refetchTravelers();
+                                } catch (error: any) {
+                                  toast({
+                                    title: t("error"),
+                                    description: error.message,
+                                    variant: "destructive"
+                                  });
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -291,7 +373,7 @@ export default function GroupDetail() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </div >
   );
 }
 

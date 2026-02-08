@@ -87,28 +87,71 @@ export type CanonicalGroup = z.infer<typeof canonicalGroupSchema>;
  */
 export const columnMappings: Record<string, string[]> = {
     name: ['name', 'full name', 'passenger name', 'traveler name', 'اسم'],
-    passportNumber: ['passport', 'passport number', 'passport no', 'pp no', 'پاسپورٹ نمبر'],
+    passportNumber: ['passport', 'passport number', 'passport no', 'pp no', 'group no', 'group no.', 'پاسپورٹ نمبر'],
     nationality: ['nationality', 'country', 'nation', 'قومیت'],
-    dob: ['dob', 'date of birth', 'birth date', 'birthdate', 'تاریخ پیدائش'],
-    phoneE164: ['phone', 'mobile', 'contact', 'phone number', 'فون'],
-    arrivalDate: ['arrival', 'arrival date', 'check in', 'آمد کی تاریخ'],
-    departureDate: ['departure', 'departure date', 'check out', 'روانگی کی تاریخ'],
-    flightNumber: ['flight', 'flight no', 'flight number', 'پرواز نمبر'],
+    dob: ['dob', 'date of birth', 'birth date', 'birthdate', 'date', 'تاریخ پیدائش'],
+    phoneE164: ['phone', 'mobile', 'contact', 'phone number', 'فون', 'رقم'],
+    arrivalDate: ['arrival', 'arrival date', 'check in', 'entry', 'entry date', 'آمد کی تاریخ', 'وصول'],
+    departureDate: ['departure', 'departure date', 'exit', 'exit date', 'check out', 'روانگی کی تاریخ', 'مغادرة'],
+    flightNumber: ['flight', 'flight no', 'flight number', 'arrival flight', 'پرواز نمبر', 'رقم الرحلة'],
 };
 
 /**
  * Auto-map CSV headers to canonical fields
  */
-export function autoMapColumns(csvHeaders: string[]): Record<string, string> {
+export function autoMapColumns(csvHeaders: string[], firstRows?: Array<Record<string, any>>): Record<string, string> {
     const mapped: Record<string, string> = {};
+    const usedCanonical = new Set<string>();
 
+    // Phase 1: Header Name Matching (Unicode Safe)
     for (const header of csvHeaders) {
         const normalized = header.toLowerCase().trim();
+        if (!normalized) continue;
 
         for (const [canonical, aliases] of Object.entries(columnMappings)) {
-            if (aliases.some(alias => normalized.includes(alias.toLowerCase()))) {
+            if (usedCanonical.has(canonical)) continue;
+
+            const isMatch = aliases.some(alias => {
+                const normAlias = alias.toLowerCase().trim();
+                return normalized === normAlias ||
+                    normalized.includes(normAlias) ||
+                    normAlias.includes(normalized);
+            });
+
+            if (isMatch) {
                 mapped[header] = canonical;
+                usedCanonical.add(canonical);
                 break;
+            }
+        }
+    }
+
+    // Phase 2: Heuristic Content Matching (If required fields missing)
+    const required = ['passportNumber', 'name', 'dob', 'nationality'];
+    const missing = required.filter(f => !usedCanonical.has(f));
+
+    if (missing.length > 0 && firstRows && firstRows.length > 0) {
+        const unmappedHeaders = csvHeaders.filter(h => !mapped[h]);
+
+        for (const h of unmappedHeaders) {
+            const values = firstRows.slice(0, 5).map(r => String(r[h] || '').trim()).filter(Boolean);
+            if (values.length === 0) continue;
+
+            if (missing.includes('passportNumber') && values.every(v => /^[A-Z0-9]{6,12}$/i.test(v))) {
+                mapped[h] = 'passportNumber';
+                usedCanonical.add('passportNumber');
+            } else if (missing.includes('dob') && values.every(v => /^\d{4}-\d{2}-\d{2}$/.test(v))) {
+                mapped[h] = 'dob';
+                usedCanonical.add('dob');
+            } else if (missing.includes('nationality') && values.every(v => {
+                // Tighten: Only map to nationality if values look like ISO codes (2-3 chars, alphabetic)
+                return /^[A-Z]{2,3}$/i.test(v);
+            })) {
+                mapped[h] = 'nationality';
+                usedCanonical.add('nationality');
+            } else if (missing.includes('name') && values.every(v => v.split(' ').length >= 2 && v.length > 5)) {
+                mapped[h] = 'name';
+                usedCanonical.add('name');
             }
         }
     }
@@ -125,16 +168,20 @@ export function validateCanonicalRow(
     columnMap?: Record<string, string>
 ): { data: Partial<CanonicalTraveler> | null; errors: Array<{ field: string; code: string; message: string }> } {
 
-    // Apply column mapping if provided
+    // Apply column mapping and sanitize strings
     const mappedRow: Record<string, any> = {};
     if (columnMap) {
         for (const [csvCol, canonicalField] of Object.entries(columnMap)) {
-            if (row[csvCol] !== undefined) {
-                mappedRow[canonicalField] = row[csvCol];
+            let val = row[csvCol];
+            if (typeof val === 'string') val = val.trim();
+            if (val !== undefined && val !== '') {
+                mappedRow[canonicalField] = val;
             }
         }
     } else {
-        Object.assign(mappedRow, row);
+        for (const [key, val] of Object.entries(row)) {
+            mappedRow[key] = typeof val === 'string' ? val.trim() : val;
+        }
     }
 
     // Validate against schema
@@ -143,11 +190,24 @@ export function validateCanonicalRow(
     if (result.success) {
         return { data: result.data, errors: [] };
     } else {
-        const errors = result.error.issues.map(issue => ({
-            field: issue.path.join('.') || 'unknown',
-            code: issue.message.startsWith('ERR_') ? issue.message : 'ERR_VALIDATION_FAILED',
-            message: issue.message,
-        }));
+        const errors = result.error.issues.map(issue => {
+            const field = issue.path.join('.') || 'unknown';
+            const code = issue.message.startsWith('ERR_') ? issue.message : 'ERR_VALIDATION_FAILED';
+
+            // Generate a more descriptive message if custom code isn't available
+            let message = issue.message;
+            if (code === 'ERR_VALIDATION_FAILED') {
+                if (issue.code === 'invalid_type' && issue.received === 'undefined') {
+                    message = `${field} is required`;
+                } else if (issue.code === 'invalid_type') {
+                    message = `${field} is invalid format`;
+                } else {
+                    message = issue.message;
+                }
+            }
+
+            return { field, code, message };
+        });
 
         return { data: null, errors };
     }

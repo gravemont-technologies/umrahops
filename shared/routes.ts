@@ -99,6 +99,14 @@ export const api = {
         404: errorSchemas.notFound,
       },
     },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/travelers/:id',
+      responses: {
+        204: z.null(),
+        404: errorSchemas.notFound,
+      },
+    },
   },
   jobs: {
     list: {

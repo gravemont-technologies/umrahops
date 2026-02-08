@@ -1,0 +1,10 @@
+feature_id,page,name,completion,vitality,priority
+dash-stats,dashboard,Dashboard Stats,87,9.0,10.2
+groups-crud,groups,Groups Management,100,9.5,9.5
+travelers-crud,group-detail,Travelers CRUD,87,9.5,10.7
+risk-scan,group-detail,AI Risk Scan,87,8.5,9.6
+nusuk-rpa,jobs,NUSUK RPA Sync,62,8.0,11.0
+message-wa,group-detail,WhatsApp Notify,37,7.5,12.2
+audit-logs,audit,Security Audit,87,7.0,7.9
+hotel-copy,group-detail,Hotel Draft Msg,87,6.5,7.3
+objectives-todo,dashboard,Executive TODOs,87,7.0,7.9

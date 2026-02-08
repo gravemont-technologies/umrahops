@@ -158,6 +158,22 @@ export const translations: Translations = {
     respHelp: { en: "I can help with: 'delaying colleague', 'how to scan', 'boost productivity'.", ur: "میں 'رابطے میں تاخیر'، 'اسکین کرنے کا طریقہ'، 'پیداواری صلاحیت بڑھانے' میں مدد کر سکتا ہوں۔" },
     respScan: { en: "To scan passports: Go to Group Details > Upload CSV or click the 'Run Risk Scan' button.", ur: "پاسپورٹ اسکین کرنے کے لیے: گروپ کی تفصیلات پر جائیں > CSV اپ لوڈ کریں یا 'رن رسک اسکین' بٹن پر کلک کریں۔" },
     respDefault: { en: "I'm just a simple rule-based bot. Try asking about 'delay' or 'help'.", ur: "میں صرف ایک سادہ رول بیسڈ بوٹ ہوں۔ 'تاخیر' یا 'مدد' کے بارے میں پوچھنے کی کوشش کریں۔" },
+    sendWhatsApp: { en: "Send WhatsApp", ur: "واٹس ایپ بھیجیں" },
+    verifyIntegrity: { en: "Verify Integrity", ur: "سالمیت کی تصدیق کریں" },
+    verified: { en: "Verified", ur: "تصدیق شدہ" },
+    chainIntact: { en: "Audit chain integrity is intact.", ur: "آڈٹ چین کی سالمیت برقرار ہے۔" },
+    verificationFailed: { en: "Verification Failed", ur: "تصدیق ناکام ہو گئی" },
+    chainBrokenAt: { en: "Chain broken at", ur: "چین یہاں ٹوٹی ہے" },
+    chainVerified: { en: "Chain Verified", ur: "چین کی تصدیق ہو گئی" },
+    chainBroken: { en: "Chain Broken", ur: "چین ٹوٹی ہوئی ہے" },
+    editTraveler: { en: "Edit Traveler", ur: "مسافر کی ترمیم کریں" },
+    deleteTraveler: { en: "Delete Traveler", ur: "مسافر کو حذف کریں" },
+    deleteTravelerConfirm: { en: "Are you sure you want to delete this traveler?", ur: "کیا آپ واقعی اس مسافر کو حذف کرنا چاہتے ہیں؟" },
+    travelerUpdated: { en: "Traveler updated successfully", ur: "مسافر کی معلومات کامیابی سے اپ ڈیٹ ہو گئی" },
+    travelerDeleted: { en: "Traveler deleted", ur: "مسافر حذف کر دیا گیا" },
+    exportCsv: { en: "Export CSV", ur: "CSV ایکسپورٹ کریں" },
+    saveChanges: { en: "Save Changes", ur: "تبدیلیاں محفوظ کریں" },
+    dob: { en: "Date of Birth", ur: "تاریخ پیدائش" },
 };
 
 interface LanguageContextType {
