@@ -105,8 +105,21 @@ app.use((req, res, next) => {
         host: "0.0.0.0",
         reusePort: true,
       },
-      () => {
+      async () => {
         log(`serving on port ${port}`);
+
+        // Spawn Background Job Processor in Production
+        if (process.env.NODE_ENV === "production" && !process.env.DISABLE_JOBS) {
+          const { spawn } = await import("child_process");
+          log("Starting background job processor...", "jobs");
+          const jobProc = spawn("node", ["dist/server/jobProcessor.js"], {
+            stdio: "inherit",
+            env: { ...process.env }
+          });
+          jobProc.on("exit", (code) => {
+            log(`Job processor exited with code ${code}`, "jobs");
+          });
+        }
       },
     );
   }

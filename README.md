@@ -172,23 +172,29 @@ npm run test:e2e
 
 ---
 
-## Feature Status → % Complete
+## Feature Status & Audit Result (v1.1)
 
 | Feature | Status | % Complete | Notes |
 |---------|--------|-----------|-------|
-| **Environment & Config** | ✅ Done on Replit | 100% | `.env.example` + startup check |
-| **Database (SQLite)** | ✅ Done on Replit | 100% | WAL, pragmas, migrations |
-| **Database (Supabase)** | ✅ Stub on Replit | 80% | Schema ready; RLS policies need per-org tuning |
-| **Auth (Supabase)** | ✅ Done on Replit | 90% | Session management; MFA optional |
-| **CSV Import & Canonical** | ✅ Done on Replit | 75% | Parsing works; mapping UI for unmatched cols in progress |
-| **AI Risk Scoring** | ✅ Stub on Replit | 70% | Mock mode functional; batching + caching TODO |
-| **NUSUK Bulk Import** | ⚠️ Stub on Replit | 20% | API client stub; RPA requires local Playwright |
-| **Workflow Engine** | ✅ Done on Replit | 85% | Step progression + hooks; cross-tab sync pending |
-| **Messaging (WhatsApp)** | ✅ Done on Replit | 80% | Deep links work; lifecycle tracking manual |
-| **PDF Export** | ✅ Done on Replit | 90% | jsPDF generation; preview modal optional |
-| **Audit Chain** | ✅ Stub on Replit | 60% | Writes logs; chain-hash integrity + verification UI TODO |
-| **Exception Queue** | ❌ Local only | 10% | Human-review UI not started |
-| **PWA Performance** | ⏳ In progress | 50% | Service worker exists; code-splitting + lazy fonts TODO |
+| **Environment & Config** | ✅ Done | 100% | `.env.example` + startup validation |
+| **Database (Hybrid)** | ✅ Done | 100% | Auto-detects SQLite (dev) or Postgres (prod) |
+| **CSV Import** | ✅ Done | 100% | Column mapping, date parsing, nationality fallback |
+| **Traveler Management** | ✅ New | 100% | Live Edit, Update, and Delete with sync |
+| **AI Risk Scoring** | ✅ Done | 95% | Batched OpenAI calls with caching & mocking |
+| **NUSUK Integration** | ✅ Done | 100% | Background job queue + local RPA worker |
+| **Audit & Compliance** | ✅ Done | 100% | Immutable chain + **UI Verification Button** |
+| **Workflow Engine** | ✅ Done | 90% | Step progression; real-time dashboard stats |
+| **Messaging (WhatsApp)** | ✅ Done | 100% | Direct buttons + automatic audit logging |
+| **PDF Export** | ⏳ In progress | 40% | Core generation functional; UI pending |
+
+---
+
+## 🔒 Security & Data Integrity
+
+- **Cryptographic Audit Trail**: Every action (import, edit, scan, send) is chained via SHA-256 hashes.
+- **On-Demand Verification**: Go to **Audit Logs** and click "Verify Integrity" to prove the chain hasn't been tampered with.
+- **PII-Safe AI**: We never send raw passport numbers to OpenAI; only deterministic hashes are used for risk scoring.
+- **Secret Protection**: Includes a `scripts/validateEnv.ts` to block deployment if secrets are exposed.
 
 ---
 
