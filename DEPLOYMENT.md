@@ -18,13 +18,16 @@ Railway provides **Docker-based persistent hosting**, which is the only reliable
 
 ## 🗺️ 2. Architectural Mapping
 
-| Component | Production State | Deployment Mode |
+### Component Mapping (Production State)
+
+| Component | Target Artifact | Deployment Path |
 | :--- | :--- | :--- |
-| **Frontend** | React (Vite) | Static assets served by Express |
-| **Backend** | Express (Node 20) | Unified Docker Image |
-| **Database** | PostgreSQL (Managed) | Supabase or Railway Postgres |
-| **Jobs Queue** | `jobs_queue` table | Background Worker thread in Docker |
-| **RPA / NUSUK** | Playwright | Headless Chromium in Docker |
+| **Frontend** | React SPA | `/dist/public` |
+| **Backend** | Express API | `/dist/server/index.js` |
+| **Worker** | Job Processor | `/dist/server/jobProcessor.js` |
+
+> [!IMPORTANT]
+> The unified build process ensures that the frontend is served by the production server from the root-level `dist/public` directory.
 
 ### Integrative Deployment Flow:
 1.  **Build**: Vite compiles frontend to `/dist/public`.

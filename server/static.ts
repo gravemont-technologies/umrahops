@@ -6,9 +6,12 @@ import path from "path";
 export function serveStatic(app: Express) {
   const distPath = path.resolve(process.cwd(), "dist", "public");
   if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
+    const errorMsg = `[CRITICAL] Build directory NOT FOUND: ${distPath}. ` +
+      `Deployment will fail because static files cannot be served. ` +
+      `Ensure "npm run build" was executed successfully and that dist/public contains index.html. ` +
+      `Current working directory: ${process.cwd()}`;
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
   app.use(express.static(distPath));
