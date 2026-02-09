@@ -11,10 +11,18 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# 4. Copy source and build
+# 4. Copy source and build with verification
 COPY . .
-# Note: Ensure npm run build generates dist/public and dist/server
-RUN npm run build
+RUN npm run build && \
+    echo "=== Build Verification ===" && \
+    ls -la /app/dist/ && \
+    echo "--- Client artifacts ---" && \
+    ls -la /app/dist/public/ && \
+    echo "--- Server artifacts ---" && \
+    ls -la /app/dist/server/ && \
+    echo "--- Checking required files ---" && \
+    [ -f /app/dist/public/index.html ] && echo "✓ Client build SUCCESS" || (echo "✗ Client build FAILED" && exit 1) && \
+    [ -f /app/dist/server/index.js ] && echo "✓ Server build SUCCESS" || (echo "✗ Server build FAILED" && exit 1)
 
 # 5. Production Environment
 ENV NODE_ENV=production
