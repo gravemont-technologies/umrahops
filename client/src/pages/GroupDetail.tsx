@@ -44,6 +44,10 @@ export default function GroupDetail() {
       passportNumber: t.passportNumber,
       nationality: t.nationality,
       dob: t.dob,
+      phone: t.phone || 'N/A',
+      arrival: t.arrivalDate || 'N/A',
+      departure: t.departureDate || 'N/A',
+      flight: t.flightNumber || 'N/A',
       status: t.nusukStatus || 'pending',
       riskScore: t.riskScore || 'N/A'
     })));

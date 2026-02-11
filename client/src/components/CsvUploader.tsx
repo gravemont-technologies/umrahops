@@ -214,10 +214,11 @@ export function CsvUploader({ groupId }: CsvUploaderProps) {
           passportNumber: row.passportNumber,
           name: row.name,
           nationality: row.nationality,
-          dob: row.dob, // might be invalid string
-          // If these marked error, we can technically null them to force strict save? 
-          // Or just accept the risk? User wants to "Import and correct manually".
-          // So we import even with weird dates if backend allows, OR we nullify them.
+          dob: row.dob,
+          phone: row.phone || null,
+          arrivalDate: row.arrivalDate || null,
+          departureDate: row.departureDate || null,
+          flightNumber: row.flightNumber || null,
           nusukId: null,
           nusukStatus: "pending",
           riskScore: null,
@@ -234,12 +235,16 @@ export function CsvUploader({ groupId }: CsvUploaderProps) {
     }
 
     // Convert Valid rows
-    const validTravelers: InsertTraveler[] = valid.map((t: CanonicalTraveler) => ({
+    const validTravelers: InsertTraveler[] = valid.map((t: any) => ({
       groupId,
       passportNumber: t.passportNumber,
       name: t.name,
       nationality: t.nationality,
       dob: t.dob,
+      phone: t.phone || null,
+      arrivalDate: t.arrivalDate || null,
+      departureDate: t.departureDate || null,
+      flightNumber: t.flightNumber || null,
       nusukId: null,
       nusukStatus: "pending",
       riskScore: null,

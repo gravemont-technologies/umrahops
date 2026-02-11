@@ -39,7 +39,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { label: t("groups"), icon: Users, href: "/dashboard/groups" },
     { label: t("jobsQueue"), icon: Briefcase, href: "/dashboard/jobs" },
     { label: t("auditLogs"), icon: Activity, href: "/dashboard/audit" },
-    { label: t("settings"), icon: Settings, href: "/dashboard/settings" },
+    // { label: t("settings"), icon: Settings, href: "/dashboard/settings" },
   ];
 
   return (

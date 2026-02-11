@@ -12,7 +12,23 @@ import GroupDetail from "@/pages/GroupDetail";
 import GroupsList from "@/pages/GroupsList";
 import JobsQueue from "@/pages/JobsQueue";
 import AuditLogs from "@/pages/AuditLogs";
+import LoginPage from "@/pages/LoginPage";
 import { Layout } from "@/components/Layout";
+import { useEffect } from "react";
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const [, setLocation] = useLocation();
+  const isAuthenticated = localStorage.getItem("umrahos_auth") === "true";
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setLocation("/login");
+    }
+  }, [isAuthenticated, setLocation]);
+
+  if (!isAuthenticated) return null;
+  return <>{children}</>;
+}
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
   return <Layout>{children}</Layout>;
@@ -23,43 +39,36 @@ function Router() {
     <Switch>
       <Route path="/" component={Landing} />
 
+      <Route path="/login" component={LoginPage} />
+
       {/* Dashboard Routes */}
       <Route path="/dashboard">
-        <DashboardLayout>
-          <Dashboard />
-        </DashboardLayout>
+        <ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>
       </Route>
 
       <Route path="/dashboard/groups">
-        <DashboardLayout>
-          <GroupsList />
-        </DashboardLayout>
+        <ProtectedRoute><DashboardLayout><GroupsList /></DashboardLayout></ProtectedRoute>
       </Route>
 
       <Route path="/dashboard/groups/:id">
-        <DashboardLayout>
-          <GroupDetail />
-        </DashboardLayout>
+        <ProtectedRoute><DashboardLayout><GroupDetail /></DashboardLayout></ProtectedRoute>
       </Route>
 
       <Route path="/dashboard/jobs">
-        <DashboardLayout>
-          <JobsQueue />
-        </DashboardLayout>
+        <ProtectedRoute><DashboardLayout><JobsQueue /></DashboardLayout></ProtectedRoute>
       </Route>
 
       <Route path="/dashboard/audit">
-        <DashboardLayout>
-          <AuditLogs />
-        </DashboardLayout>
+        <ProtectedRoute><DashboardLayout><AuditLogs /></DashboardLayout></ProtectedRoute>
       </Route>
 
-      {/* Settings Stub */}
-      <Route path="/dashboard/settings">
-        <DashboardLayout>
-          <div className="p-8 text-center text-muted-foreground">Settings module coming soon.</div>
-        </DashboardLayout>
-      </Route>
+      {/* <Route path="/dashboard/settings">
+        <ProtectedRoute>
+          <DashboardLayout>
+            <div className="p-8 text-center text-muted-foreground">Settings module coming soon.</div>
+          </DashboardLayout>
+        </ProtectedRoute>
+      </Route> */}
 
       <Route component={NotFound} />
     </Switch>

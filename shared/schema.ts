@@ -22,6 +22,10 @@ export const travelers = sqliteTable("travelers", {
   name: text("name").notNull(),
   nationality: text("nationality").notNull(),
   dob: text("dob").notNull(), // ISO date string YYYY-MM-DD
+  phone: text("phone"),
+  arrivalDate: text("arrival_date"),
+  departureDate: text("departure_date"),
+  flightNumber: text("flight_number"),
   riskScore: integer("risk_score"),
   riskReason: text("risk_reason"),
   nusukId: text("nusuk_id"),
@@ -52,6 +56,7 @@ export const auditLogs = sqliteTable("audit_logs", {
   entityId: text("entity_id").notNull(),
   action: text("action").notNull(), // create, update, delete
   payload: text("payload", { mode: "json" }),
+  payloadHash: text("payload_hash"),
   prevHash: text("prev_hash"),
   hash: text("hash"),
   createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`),
@@ -175,5 +180,9 @@ export const csvImportSchema = z.object({
   name: z.string(),
   nationality: z.string(),
   dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format must be YYYY-MM-DD"),
+  phone: z.string().optional(),
+  arrivalDate: z.string().optional(),
+  departureDate: z.string().optional(),
+  flightNumber: z.string().optional(),
 });
 export type CsvImportRow = z.infer<typeof csvImportSchema>;

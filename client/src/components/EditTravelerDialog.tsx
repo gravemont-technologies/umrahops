@@ -40,6 +40,10 @@ export function EditTravelerDialog({ traveler, onSuccess }: EditTravelerDialogPr
             passportNumber: traveler.passportNumber,
             nationality: traveler.nationality,
             dob: traveler.dob,
+            phone: traveler.phone || "",
+            arrivalDate: traveler.arrivalDate || "",
+            departureDate: traveler.departureDate || "",
+            flightNumber: traveler.flightNumber || "",
             groupId: traveler.groupId,
         },
     });
@@ -75,64 +79,128 @@ export function EditTravelerDialog({ traveler, onSuccess }: EditTravelerDialogPr
                     <Edit2 className="h-4 w-4" />
                 </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{t("editTraveler") || "Edit Traveler"}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>{t("name")}</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="passportNumber"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>{t("passport")}</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="nationality"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>{t("nationality")}</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} maxLength={3} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="dob"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>{t("dob") || "Date of Birth"}</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} type="date" />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("name")}</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="passportNumber"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("passport")}</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="nationality"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("nationality")}</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} maxLength={3} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="dob"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("dob") || "Date of Birth"}</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} type="date" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="phone"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("phone") || "Phone Number"}</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} placeholder="+966..." />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="flightNumber"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("flightNumber") || "Flight Number"}</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} placeholder="SV123" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="arrivalDate"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("arrivalDate") || "Arrival Date"}</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} type="date" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="departureDate"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("departureDate") || "Departure Date"}</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} type="date" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
                         <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                             {form.formState.isSubmitting ? (
                                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
